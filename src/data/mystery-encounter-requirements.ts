@@ -2,10 +2,10 @@ import { PlayerPokemon } from "#app/field/pokemon";
 import { ModifierType, PokemonHeldItemModifierType } from "#app/modifier/modifier-type";
 import BattleScene from "../battle-scene";
 import { isNullOrUndefined } from "../utils";
-import { Abilities } from "./enums/abilities";
-import { Moves } from "./enums/moves";
-import { Species } from "./enums/species";
-import { TimeOfDay } from "./enums/time-of-day";
+import { Abilities } from "#enums/abilities";
+import { Moves } from "#enums/moves";
+import { Species } from "#enums/species";
+import { TimeOfDay } from "#enums/time-of-day";
 import { Nature } from "./nature";
 import { EvolutionItem, pokemonEvolutions } from "./pokemon-evolutions";
 import { FormChangeItem, SpeciesFormChangeItemTrigger, pokemonFormChanges } from "./pokemon-forms";
@@ -442,6 +442,7 @@ export class CompatibleMoveRequirement extends EncounterPokemonRequirement {
 
 }
 
+/*
 export class EvolutionTargetSpeciesRequirement extends EncounterPokemonRequirement {
   requiredEvolutionTargetSpecies: Species[];
   minNumberOfPokemon:number;
@@ -484,7 +485,7 @@ export class EvolutionTargetSpeciesRequirement extends EncounterPokemonRequireme
     return null;
   }
 
-}
+}*/
 
 export class AbilityRequirement extends EncounterPokemonRequirement {
   requiredAbilities: Abilities[];

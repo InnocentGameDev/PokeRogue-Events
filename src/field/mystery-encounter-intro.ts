@@ -71,11 +71,15 @@ export default class MysteryEncounterIntroVisuals extends Phaser.GameObjects.Con
       }
 
       // Sprite offset from origin
-      if (config.x > 0 || config.y > 0) {
-        sprite.x = origin + config.x;
-        sprite.y = origin + config.y;
-        tintSprite.x = origin + config.x;
-        tintSprite.y = origin + config.y;
+      if (config.x || config.y) {
+        if (config.x) {
+          sprite.x = origin + config.x;
+          tintSprite.x = origin + config.x;
+        }
+        if (config.y) {
+          sprite.y = origin + config.y;
+          tintSprite.y = origin + config.y;
+        }
       } else {
         // Single sprite
         if (this.spriteConfigs.length === 1) {

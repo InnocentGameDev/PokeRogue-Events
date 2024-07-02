@@ -1,11 +1,11 @@
 import {afterEach, beforeAll, beforeEach, describe, expect, it, vi} from "vitest";
-import {Species} from "#app/data/enums/species";
 import * as overrides from "../../overrides";
 import {
-  EncounterPhase,
+  EncounterPhase
 } from "#app/phases";
 import GameManager from "#app/test/utils/gameManager";
 import Phaser from "phaser";
+import {Species} from "#enums/species";
 
 describe("Mystery Encounter", () => {
   let phaserGame: Phaser.Game;

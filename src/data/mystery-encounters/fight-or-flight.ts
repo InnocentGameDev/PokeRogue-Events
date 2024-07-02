@@ -4,12 +4,12 @@ import {
   EnemyPartyConfig,
   initBattleWithEnemyConfig,
   leaveEncounterWithoutBattle,
-  setEncounterRewards,
+  setCustomEncounterRewards,
   showEncounterText
-} from "#app/utils/mystery-encounter-utils";
-import MysteryEncounter, {MysteryEncounterBuilder} from "../mystery-encounter";
+} from "#app/data/mystery-encounters/mystery-encounter-utils";
+import MysteryEncounter, {MysteryEncounterBuilder, MysteryEncounterTier} from "../mystery-encounter";
 import * as Utils from "../../utils";
-import {MysteryEncounterType} from "../enums/mystery-encounter-type";
+import {MysteryEncounterType} from "#enums/mystery-encounter-type";
 import {WaveCountRequirement} from "../mystery-encounter-requirements";
 import {MysteryEncounterOptionBuilder} from "../mystery-encounter-option";
 import {
@@ -17,15 +17,17 @@ import {
   getPlayerModifierTypeOptions,
   ModifierPoolType,
   ModifierTypeOption,
-  modifierTypes,
   regenerateModifierPoolThresholds
 } from "#app/modifier/modifier-type";
+import {BattlerTagType} from "#enums/battler-tag-type";
 
 export const FightOrFlightEncounter: MysteryEncounter = new MysteryEncounterBuilder()
   .withEncounterType(MysteryEncounterType.FIGHT_OR_FLIGHT)
+  .withEncounterTier(MysteryEncounterTier.COMMON)
   .withIntroSpriteConfigs([]) // Set in onInit()
-  .withSceneRequirement(new WaveCountRequirement([2, 180])) // waves 2 to 180
+  .withSceneRequirement(new WaveCountRequirement([10, 180])) // waves 10 to 180
   .withCatchAllowed(true)
+  .withHideWildIntroMessage(true)
   .withOnInit((scene: BattleScene) => {
     const instance = scene.currentBattle.mysteryEncounter;
 
@@ -33,13 +35,13 @@ export const FightOrFlightEncounter: MysteryEncounter = new MysteryEncounterBuil
     const bossSpecies = scene.arena.randomSpecies(scene.currentBattle.waveIndex, scene.currentBattle.waveIndex, 0, getPartyLuckValue(scene.getParty()), true);
     const config: EnemyPartyConfig = {
       levelAdditiveMultiplier: 1,
-      pokemonBosses: [bossSpecies]
+      pokemonConfigs: [{species: bossSpecies, isBoss: true}]
     };
     instance.enemyPartyConfigs = [config];
 
     // Calculate item
-    // 1-60 ULTRA, 60-120 ROGUE, 120+ MASTER
-    const tier = scene.currentBattle.waveIndex > 120 ? ModifierTier.MASTER : scene.currentBattle.waveIndex > 60 ? ModifierTier.ROGUE : ModifierTier.ULTRA;
+    // 1-50 GREAT, 50-100 ULTRA, 100-150 ROGUE, 150+ MASTER
+    const tier = scene.currentBattle.waveIndex > 150 ? ModifierTier.MASTER : scene.currentBattle.waveIndex > 100 ? ModifierTier.ROGUE : scene.currentBattle.waveIndex > 50 ? ModifierTier.ULTRA : ModifierTier.GREAT;
     regenerateModifierPoolThresholds(scene.getParty(), ModifierPoolType.PLAYER, 0); // refresh player item pool
     const item = getPlayerModifierTypeOptions(1, scene.getParty(), [], { guaranteedModifierTiers: [tier]})[0];
     scene.currentBattle.mysteryEncounter.dialogueTokens.push([/@ec\{itemName\}/gi, item.type.name]);
@@ -70,23 +72,25 @@ export const FightOrFlightEncounter: MysteryEncounter = new MysteryEncounterBuil
     .withOptionPhase(async (scene: BattleScene) => {
       // Pick battle
       const item = scene.currentBattle.mysteryEncounter.misc as ModifierTypeOption;
-      setEncounterRewards(scene, { guaranteedModifiers: [modifierTypes[item.type.id]], fillRemaining: false});
+      setCustomEncounterRewards(scene, { guaranteedModifierTypeOptions: [item], fillRemaining: false});
       await initBattleWithEnemyConfig(scene, scene.currentBattle.mysteryEncounter.enemyPartyConfigs[0]);
     })
     .build())
   .withOption(new MysteryEncounterOptionBuilder()
     .withOptionPhase(async (scene: BattleScene) => {
       // Pick steal
+      const item = scene.currentBattle.mysteryEncounter.misc as ModifierTypeOption;
+      setCustomEncounterRewards(scene, { guaranteedModifierTypeOptions: [item], fillRemaining: false});
 
       const roll = Utils.randSeedInt(16);
-      if (roll > 4) {
-        // Noticed and attacked by boss, item is knocked away (75%)
+      if (roll > 6) {
+        // Noticed and attacked by boss, gets +1 to all stats at start of fight (62.5%)
+        const config = scene.currentBattle.mysteryEncounter.enemyPartyConfigs[0];
+        config.pokemonConfigs[0].tags = [BattlerTagType.ENRAGED];
         await showEncounterText(scene, "mysteryEncounter:fight_or_flight_option_2_bad_result");
-        await initBattleWithEnemyConfig(scene, scene.currentBattle.mysteryEncounter.enemyPartyConfigs[0]);
+        await initBattleWithEnemyConfig(scene, config);
       } else {
-        // Steal item (25%)
-        const item = scene.currentBattle.mysteryEncounter.misc as ModifierTypeOption;
-        setEncounterRewards(scene, { guaranteedModifiers: [modifierTypes[item.type.id]], fillRemaining: false});
+        // Steal item (37.5%)
         // Display result message then proceed to rewards
         await showEncounterText(scene, "mysteryEncounter:fight_or_flight_option_2_good_result")
           .then(() => leaveEncounterWithoutBattle(scene));
@@ -96,7 +100,7 @@ export const FightOrFlightEncounter: MysteryEncounter = new MysteryEncounterBuil
   .withOption(new MysteryEncounterOptionBuilder()
     .withOptionPhase(async (scene: BattleScene) => {
       // Leave encounter with no rewards or exp
-      leaveEncounterWithoutBattle(scene);
+      leaveEncounterWithoutBattle(scene, true);
       return true;
     })
     .build())

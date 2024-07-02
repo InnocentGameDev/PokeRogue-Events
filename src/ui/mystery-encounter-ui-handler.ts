@@ -2,7 +2,7 @@ import BattleScene from "../battle-scene";
 import { addTextObject, TextStyle } from "./text";
 import { Mode } from "./ui";
 import UiHandler from "./ui-handler";
-import { Button } from "../enums/buttons";
+import { Button } from "#enums/buttons";
 import { addWindow, WindowVariant } from "./ui-theme";
 import i18next from "i18next";
 import { MysteryEncounterPhase } from "../phases/mystery-encounter-phase";
@@ -84,6 +84,7 @@ export default class MysteryEncounterUiHandler extends UiHandler {
         this.unblockInput();
       }, 1500);
     }
+    this.displayOptionTooltip();
 
     return true;
   }
@@ -99,6 +100,7 @@ export default class MysteryEncounterUiHandler extends UiHandler {
       if (button === Button.ACTION) {
         if (cursor === this.viewPartyIndex) {
           // Handle view party
+          success = true;
           this.clear();
           this.scene.ui.setMode(Mode.PARTY, PartyUiMode.CHECK, -1, () => {
             this.scene.ui.setMode(Mode.MYSTERY_ENCOUNTER, true);
@@ -194,7 +196,7 @@ export default class MysteryEncounterUiHandler extends UiHandler {
     case Button.LEFT:
       if (cursor === this.viewPartyIndex) {
         success = this.setCursor(1);
-      } else if (cursor !== 2) {
+      } else if (cursor === 1) {
         success = this.setCursor(cursor - 1);
       }
       break;
@@ -341,7 +343,7 @@ export default class MysteryEncounterUiHandler extends UiHandler {
 
     // Rarity of encounter
     const ballType = getPokeballAtlasKey(mysteryEncounter.encounterTier as number);
-    this.rarityBall.setTexture(ballType, ballType);
+    this.rarityBall.setTexture("pb", ballType);
 
     const descriptionTextObject = addTextObject(this.scene, 6, 25, descriptionText, TextStyle.TOOLTIP_CONTENT, { wordWrap: { width: 830 } });
 
@@ -390,8 +392,6 @@ export default class MysteryEncounterUiHandler extends UiHandler {
         duration: 1000
       });
     }
-
-    this.displayOptionTooltip();
   }
 
   displayOptionTooltip() {

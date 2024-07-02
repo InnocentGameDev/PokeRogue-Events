@@ -4,12 +4,12 @@ import {
   initBattleWithEnemyConfig,
   leaveEncounterWithoutBattle,
   pushDialogueTokensFromPokemon,
-  setEncounterRewards,
+  setCustomEncounterRewards,
   showEncounterText
-} from "#app/utils/mystery-encounter-utils";
+} from "./mystery-encounter-utils";
 import MysteryEncounter, {MysteryEncounterBuilder} from "../mystery-encounter";
 import * as Utils from "../../utils";
-import {MysteryEncounterType} from "../enums/mystery-encounter-type";
+import {MysteryEncounterType} from "#enums/mystery-encounter-type";
 import {MoveRequirement, StatusEffectRequirement, WaveCountRequirement} from "../mystery-encounter-requirements";
 import {MysteryEncounterOptionBuilder} from "../mystery-encounter-option";
 import {
@@ -17,17 +17,17 @@ import {
 } from "#app/modifier/modifier-type";
 import PokemonSpecies, { PokemonForm, SpeciesFormKey } from "../pokemon-species";
 import { Type } from "../type";
-import { Abilities } from "../enums/abilities";
-import { Species } from "../enums/species";
+import { Abilities } from "#enums/abilities";
+import { Species } from "#enums/species";
 import { GrowthRate } from "../exp";
 import { StatusEffect } from "../status-effect";
-import { Moves } from "../enums/moves";
+import { Moves } from "#enums/moves";
 import { SummonPhase } from "#app/phases";
 
 export const SleepingSnorlaxEncounter: MysteryEncounter = new MysteryEncounterBuilder()
   .withEncounterType(MysteryEncounterType.SLEEPING_SNORLAX)
   .withIntroSpriteConfigs([]) // Set in onInit()
-  .withSceneRequirement(new WaveCountRequirement([10, 180])) // waves 2 to 180
+  .withSceneRequirement(new WaveCountRequirement([10, 180])) // waves 10 to 180
   .withCatchAllowed(true)
   .withOnInit((scene: BattleScene) => {
     const instance = scene.currentBattle.mysteryEncounter;
@@ -92,7 +92,7 @@ export const SleepingSnorlaxEncounter: MysteryEncounter = new MysteryEncounterBu
         const p = instance.options[1].protagonistPokemon;
         p.trySetStatus(StatusEffect.SLEEP);
         p.updateInfo();
-        setEncounterRewards(scene, { guaranteedModifiers: [modifierTypes.LEFTOVERS], fillRemaining: false});
+        setCustomEncounterRewards(scene, { guaranteedModifiers: [modifierTypes.LEFTOVERS], fillRemaining: false});
         await showEncounterText(scene, "mysteryEncounter:sleeping_snorlax_option_2_bad_result")
           .then(() => leaveEncounterWithoutBattle(scene));
         //await initBattleWithEnemyConfig(scene, scene.currentBattle.mysteryEncounter.enemyPartyConfigs[0]);
@@ -120,7 +120,7 @@ export const SleepingSnorlaxEncounter: MysteryEncounter = new MysteryEncounterBu
       // Leave encounter with no rewards or exp
       const instance = scene.currentBattle.mysteryEncounter;
       pushDialogueTokensFromPokemon(instance);
-      setEncounterRewards(scene, { guaranteedModifiers: [modifierTypes.LEFTOVERS], fillRemaining: false});
+      setCustomEncounterRewards(scene, { guaranteedModifiers: [modifierTypes.LEFTOVERS], fillRemaining: false});
       await showEncounterText(scene, "mysteryEncounter:sleeping_snorlax_option_3_good_result").then(() => leaveEncounterWithoutBattle(scene));
     })
     .build())

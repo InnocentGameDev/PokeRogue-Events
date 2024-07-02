@@ -1,13 +1,13 @@
 import BattleScene from "../battle-scene";
 import MysteryEncounterIntroVisuals, { MysteryEncounterSpriteConfig } from "../field/mystery-encounter-intro";
-import { MysteryEncounterType } from "./enums/mystery-encounter-type";
+import { MysteryEncounterType } from "#enums/mystery-encounter-type";
 import MysteryEncounterDialogue, {
   allMysteryEncounterDialogue
 } from "./mystery-encounters/dialogue/mystery-encounter-dialogue";
 import MysteryEncounterOption from "./mystery-encounter-option";
 import { EncounterPokemonRequirement, EncounterSceneRequirement } from "./mystery-encounter-requirements";
 import * as Utils from "../utils";
-import {EnemyPartyConfig} from "#app/utils/mystery-encounter-utils";
+import {EnemyPartyConfig} from "#app/data/mystery-encounters/mystery-encounter-utils";
 import { PlayerPokemon } from "#app/field/pokemon";
 
 export enum MysteryEncounterVariant {
@@ -49,7 +49,7 @@ export default interface MysteryEncounter {
   supportingPokemon?: PlayerPokemon[];
   doEncounterRewards?: (scene: BattleScene) => boolean;
   onInit?: (scene: BattleScene) => boolean;
-
+  hideBattleIntroMessage?: boolean;
 
   /**
    * Post-construct / Auto-populated params
@@ -59,25 +59,17 @@ export default interface MysteryEncounter {
    * Dialogue object containing all the dialogue, messages, tooltips, etc. for an encounter
    */
   dialogue?: MysteryEncounterDialogue;
-
   /**
    * Data used for setting up/initializing enemy party in battles
    * Can store multiple configs so that one can be chosen based on option selected
    */
   enemyPartyConfigs?: EnemyPartyConfig[];
-
   /**
    * Object instance containing sprite data for an encounter when it is being spawned
    * Otherwise, will be undefined
    * You probably shouldn't do anything with this unless you have a very specific need
    */
   introVisuals?: MysteryEncounterIntroVisuals;
-
-  /**
-   * Generic property to set any custom data required for the encounter
-   */
-  misc?: any;
-
 
   /**
    * Flags
@@ -88,31 +80,37 @@ export default interface MysteryEncounter {
    * Example use: see MYSTERIOUS_CHEST
    */
   dialogueTokens?: [RegExp, string][];
-
   /**
    * Should be set depending upon option selected as part of an encounter
    * For example, if there is no battle as part of the encounter/selected option, should be set to NO_BATTLE
    * Defaults to DEFAULT
    */
   encounterVariant?: MysteryEncounterVariant;
-
   /**
    * Flag for checking if it's the first time a shop is being shown for an encounter.
    * Defaults to true so that the first shop does not override the specified rewards.
    * Will be set to false after a shop is shown (so can't reroll same rarity items for free)
    */
   lockEncounterRewardTiers?: boolean;
-
   /**
    * Will be set by option select handlers automatically, and can be used to refer to which option was chosen by later phases
    */
   selectedOption?: MysteryEncounterOption;
-
   /**
    * Can be set to true or false depending on the type of encounter
    * Defaults to false
    */
   catchAllowed?: boolean;
+  /**
+   * Can be set higher or lower based on the type of battle or exp gained for an option/encounter
+   * Defaults to 1
+   */
+  expMultiplier?: number;
+
+  /**
+   * Generic property to set any custom data required for the encounter
+   */
+  misc?: any;
 }
 
 /**
@@ -129,12 +127,15 @@ export default class MysteryEncounter implements MysteryEncounter {
     this.dialogue = allMysteryEncounterDialogue[this.encounterType];
     this.encounterVariant = MysteryEncounterVariant.DEFAULT;
     this.requirements = this.requirements ? this.requirements : [];
+    this.hideBattleIntroMessage = !!this.hideBattleIntroMessage;
 
     // Reset any dirty flags or encounter data
     this.lockEncounterRewardTiers = true;
     this.dialogueTokens = [];
     this.enemyPartyConfigs = [];
     this.introVisuals = null;
+    this.misc = null;
+    this.expMultiplier = 1;
   }
 
   /**
@@ -253,6 +254,7 @@ export class MysteryEncounterBuilder implements Partial<MysteryEncounter> {
   dialogueTokens?: [RegExp, string][];
   doEncounterRewards?: (scene: BattleScene) => boolean;
   onInit?: (scene: BattleScene) => boolean;
+  hideBattleIntroMessage?: boolean;
   enemyPartyConfigs?: EnemyPartyConfig[] = [];
 
   /**
@@ -308,11 +310,11 @@ export class MysteryEncounterBuilder implements Partial<MysteryEncounter> {
    * RARE 10/64 odds
    * SUPER_RARE 6/64 odds
    * ULTRA_RARE Not currently used
-   * @param encounterType
+   * @param encounterTier
    * @returns
    */
-  withEncounterTier(encounterType: MysteryEncounterTier): this & Required<Pick<MysteryEncounter, "encounterType">> {
-    return Object.assign(this, { encounterType: encounterType });
+  withEncounterTier(encounterTier: MysteryEncounterTier): this & Required<Pick<MysteryEncounter, "encounterTier">> {
+    return Object.assign(this, { encounterTier: encounterTier });
   }
 
   /**
@@ -384,13 +386,23 @@ export class MysteryEncounterBuilder implements Partial<MysteryEncounter> {
   }
 
   /**
- * Can set whether catching is allowed or not on the encounter
- * This flag can also be programmatically set inside option event functions or elsewhere
- * @param catchAllowed - if true, allows enemy pokemon to be caught during the encounter
- * @returns
- */
+   * Can set whether catching is allowed or not on the encounter
+   * This flag can also be programmatically set inside option event functions or elsewhere
+   * @param catchAllowed - if true, allows enemy pokemon to be caught during the encounter
+   * @returns
+   */
   withCatchAllowed(catchAllowed: boolean): this & Required<Pick<MysteryEncounter, "catchAllowed">> {
     return Object.assign(this, { catchAllowed: catchAllowed });
+  }
+
+  /**
+   * Can set whether catching is allowed or not on the encounter
+   * This flag can also be programmatically set inside option event functions or elsewhere
+   * @param hideBattleIntroMessage - if true, will not show the trainerAppeared/wildAppeared/bossAppeared message for an encounter
+   * @returns
+   */
+  withHideWildIntroMessage(hideBattleIntroMessage: boolean): this & Required<Pick<MysteryEncounter, "hideBattleIntroMessage">> {
+    return Object.assign(this, { hideBattleIntroMessage: hideBattleIntroMessage });
   }
 
   build(this: MysteryEncounter) {

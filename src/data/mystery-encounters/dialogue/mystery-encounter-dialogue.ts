@@ -1,8 +1,9 @@
-import {MysteryEncounterType} from "#app/data/enums/mystery-encounter-type";
+import {MysteryEncounterType} from "#enums/mystery-encounter-type";
 import {MysteriousChallengersDialogue} from "#app/data/mystery-encounters/dialogue/mysterious-challengers-dialogue";
 import {MysteriousChestDialogue} from "#app/data/mystery-encounters/dialogue/mysterious-chest-dialogue";
 import {DarkDealDialogue} from "#app/data/mystery-encounters/dialogue/dark-deal-dialogue";
 import {FightOrFlightDialogue} from "#app/data/mystery-encounters/dialogue/fight-or-flight-dialogue";
+import {TrainingSessionDialogue} from "#app/data/mystery-encounters/dialogue/training-session-dialogue";
 import { SleepingSnorlaxDialogue } from "./sleeping-snorlax-dialogue";
 
 export class TextDisplay {
@@ -86,5 +87,6 @@ export function initMysteryEncounterDialogue() {
   allMysteryEncounterDialogue[MysteryEncounterType.MYSTERIOUS_CHEST] = MysteriousChestDialogue;
   allMysteryEncounterDialogue[MysteryEncounterType.DARK_DEAL] = DarkDealDialogue;
   allMysteryEncounterDialogue[MysteryEncounterType.FIGHT_OR_FLIGHT] = FightOrFlightDialogue;
+  allMysteryEncounterDialogue[MysteryEncounterType.TRAINING_SESSION] = TrainingSessionDialogue;
   allMysteryEncounterDialogue[MysteryEncounterType.SLEEPING_SNORLAX] = SleepingSnorlaxDialogue;
 }

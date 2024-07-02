@@ -6,7 +6,7 @@ import AwaitableUiHandler from "./awaitable-ui-handler";
 import { Mode } from "./ui";
 import { LockModifierTiersModifier, PokemonHeldItemModifier } from "../modifier/modifier";
 import { handleTutorial, Tutorial } from "../tutorial";
-import {Button} from "../enums/buttons";
+import {Button} from "#enums/buttons";
 import MoveInfoOverlay from "./move-info-overlay";
 import { allMoves } from "../data/move";
 import * as Utils from "./../utils";
@@ -19,6 +19,7 @@ export default class ModifierSelectUiHandler extends AwaitableUiHandler {
   private lockRarityButtonContainer: Phaser.GameObjects.Container;
   private transferButtonContainer: Phaser.GameObjects.Container;
   private checkButtonContainer: Phaser.GameObjects.Container;
+  private continueButtonContainer: Phaser.GameObjects.Container;
   private rerollCostText: Phaser.GameObjects.Text;
   private lockRarityButtonText: Phaser.GameObjects.Text;
   private moveInfoOverlay : MoveInfoOverlay;
@@ -47,7 +48,7 @@ export default class ModifierSelectUiHandler extends AwaitableUiHandler {
     ui.add(this.modifierContainer);
 
     this.transferButtonContainer = this.scene.add.container((this.scene.game.canvas.width / 6) - 71, -64);
-    this.transferButtonContainer.setName("container-transfer-btn");
+    this.transferButtonContainer.setName("transfer-btn");
     this.transferButtonContainer.setVisible(false);
     ui.add(this.transferButtonContainer);
 
@@ -57,7 +58,7 @@ export default class ModifierSelectUiHandler extends AwaitableUiHandler {
     this.transferButtonContainer.add(transferButtonText);
 
     this.checkButtonContainer = this.scene.add.container((this.scene.game.canvas.width / 6) - 1, -64);
-    this.checkButtonContainer.setName("container-use-btn");
+    this.checkButtonContainer.setName("use-btn");
     this.checkButtonContainer.setVisible(false);
     ui.add(this.checkButtonContainer);
 
@@ -67,7 +68,7 @@ export default class ModifierSelectUiHandler extends AwaitableUiHandler {
     this.checkButtonContainer.add(checkButtonText);
 
     this.rerollButtonContainer = this.scene.add.container(16, -64);
-    this.rerollButtonContainer.setName("container-reroll-brn");
+    this.rerollButtonContainer.setName("reroll-brn");
     this.rerollButtonContainer.setVisible(false);
     ui.add(this.rerollButtonContainer);
 
@@ -89,6 +90,10 @@ export default class ModifierSelectUiHandler extends AwaitableUiHandler {
     this.lockRarityButtonText = addTextObject(this.scene, -4, -2, "Lock Rarities", TextStyle.PARTY);
     this.lockRarityButtonText.setOrigin(0, 0);
     this.lockRarityButtonContainer.add(this.lockRarityButtonText);
+
+    this.continueButtonContainer = this.scene.add.container((this.scene.game.canvas.width / 12), -(this.scene.game.canvas.height / 12));
+    this.continueButtonContainer.setVisible(false);
+    ui.add(this.continueButtonContainer);
 
     // prepare move overlay
     const overlayScale = 1;
@@ -116,7 +121,7 @@ export default class ModifierSelectUiHandler extends AwaitableUiHandler {
       return false;
     }
 
-    if (args.length !== 4 || !(args[1] instanceof Array) || !args[1].length || !(args[2] instanceof Function)) {
+    if (args.length !== 4 || !(args[1] instanceof Array) || !(args[2] instanceof Function)) {
       return false;
     }
 
@@ -141,6 +146,9 @@ export default class ModifierSelectUiHandler extends AwaitableUiHandler {
     this.lockRarityButtonContainer.setVisible(false);
     this.lockRarityButtonContainer.setAlpha(0);
 
+    this.continueButtonContainer.setVisible(false);
+    this.continueButtonContainer.setAlpha(0);
+
     this.rerollButtonContainer.setPositionRelative(this.lockRarityButtonContainer, 0, canLockRarities ? -12 : 0);
 
     this.rerollCost = args[3] as integer;
@@ -162,6 +170,13 @@ export default class ModifierSelectUiHandler extends AwaitableUiHandler {
       this.options.push(option);
     }
 
+    // Add continue button
+    if (this.options.length === 0) {
+      const continueButtonText = addTextObject(this.scene, -24, optionsYOffset - 5, "Continue", TextStyle.MESSAGE);
+      continueButtonText.setName("text-continue-btn");
+      this.continueButtonContainer.add(continueButtonText);
+    }
+
     for (let m = 0; m < shopTypeOptions.length; m++) {
       const row = m < SHOP_OPTIONS_ROW_LIMIT ? 0 : 1;
       const col = m < SHOP_OPTIONS_ROW_LIMIT ? m : m - SHOP_OPTIONS_ROW_LIMIT;
@@ -180,8 +195,13 @@ export default class ModifierSelectUiHandler extends AwaitableUiHandler {
 
     const maxUpgradeCount = typeOptions.map(to => to.upgradeCount).reduce((max, current) => Math.max(current, max), 0);
 
-    this.scene.showFieldOverlay(750);
+    /* Force updateModifiers without pokemonSpecificModifiers */
+    this.scene.getModifierBar().updateModifiers(this.scene.modifiers, true);
+
+    /* Multiplies the appearance duration by the speed parameter so that it is always constant, and avoids "flashbangs" at game speed x5 */
+    this.scene.showShopOverlay(750 * this.scene.gameSpeed);
     this.scene.updateAndShowText(750);
+    this.scene.updateBiomeWaveText();
     this.scene.updateMoneyText();
 
     let i = 0;
@@ -220,13 +240,21 @@ export default class ModifierSelectUiHandler extends AwaitableUiHandler {
       this.rerollButtonContainer.setAlpha(0);
       this.checkButtonContainer.setAlpha(0);
       this.lockRarityButtonContainer.setAlpha(0);
+      this.continueButtonContainer.setAlpha(0);
       this.rerollButtonContainer.setVisible(true);
       this.checkButtonContainer.setVisible(true);
+      this.continueButtonContainer.setVisible(this.rerollCost === 0);
       this.lockRarityButtonContainer.setVisible(canLockRarities);
 
       this.scene.tweens.add({
-        targets: [ this.rerollButtonContainer, this.lockRarityButtonContainer, this.checkButtonContainer ],
+        targets: [this.lockRarityButtonContainer, this.checkButtonContainer, this.continueButtonContainer],
         alpha: 1,
+        duration: 250
+      });
+
+      this.scene.tweens.add({
+        targets: [this.rerollButtonContainer],
+        alpha: this.rerollCost === 0 ? 0.5 : 1,
         duration: 250
       });
 
@@ -370,6 +398,14 @@ export default class ModifierSelectUiHandler extends AwaitableUiHandler {
     // the modifier selection has been updated, always hide the overlay
     this.moveInfoOverlay.clear();
     if (this.rowCursor) {
+      if (this.rowCursor === 1 && options.length === 0) {
+        // Continue button when no shop items
+        this.cursorObj.setScale(1.25);
+        this.cursorObj.setPosition((this.scene.game.canvas.width / 18) + 23, (-this.scene.game.canvas.height / 12) - (this.shopOptionsRows.length > 1 ? 6 : 22));
+        ui.showText("Continue to the next wave.");
+        return ret;
+      }
+
       const sliceWidth = (this.scene.game.canvas.width / 6) / (options.length + 2);
       if (this.rowCursor < 2) {
         this.cursorObj.setPosition(sliceWidth * (cursor + 1) + (sliceWidth * 0.5) - 20, (-this.scene.game.canvas.height / 12) - (this.shopOptionsRows.length > 1 ? 6 : 22));
@@ -406,7 +442,14 @@ export default class ModifierSelectUiHandler extends AwaitableUiHandler {
     if (rowCursor !== lastRowCursor) {
       this.rowCursor = rowCursor;
       let newCursor = Math.round(this.cursor / Math.max(this.getRowItems(lastRowCursor) - 1, 1) * (this.getRowItems(rowCursor) - 1));
+      if (rowCursor === 1 && this.options.length === 0) {
+        // Handle empty shop
+        newCursor = 0;
+      }
       if (rowCursor === 0) {
+        if (this.options.length === 0) {
+          newCursor = 1;
+        }
         if (newCursor === 0 && !this.rerollButtonContainer.visible) {
           newCursor = 1;
         }
@@ -472,8 +515,12 @@ export default class ModifierSelectUiHandler extends AwaitableUiHandler {
     this.getUi().clearText();
     this.eraseCursor();
 
-    this.scene.hideFieldOverlay(250);
+    /* Multiplies the fade time duration by the speed parameter so that it is always constant, and avoids "flashbangs" at game speed x5 */
+    this.scene.hideShopOverlay(750 * this.scene.gameSpeed);
     this.scene.hideLuckText(250);
+
+    /* Normally already called just after the shop, but not sure if it happens in 100% of cases */
+    this.scene.getModifierBar().updateModifiers(this.scene.modifiers);
 
     const options = this.options.concat(this.shopOptionsRows.flat());
     this.options.splice(0, this.options.length);
@@ -487,7 +534,7 @@ export default class ModifierSelectUiHandler extends AwaitableUiHandler {
       onComplete: () => options.forEach(o => o.destroy())
     });
 
-    [ this.rerollButtonContainer, this.checkButtonContainer, this.transferButtonContainer, this.lockRarityButtonContainer ].forEach(container => {
+    [this.rerollButtonContainer, this.checkButtonContainer, this.transferButtonContainer, this.lockRarityButtonContainer, this.continueButtonContainer].forEach(container => {
       if (container.visible) {
         this.scene.tweens.add({
           targets: container,
