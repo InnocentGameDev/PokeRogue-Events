@@ -1,9 +1,9 @@
 import BattleScene from "../battle-scene";
 import { isNullOrUndefined } from "../utils";
-import { Abilities } from "./enums/abilities";
-import { Biome } from "./enums/biome";
-import { Species } from "./enums/species";
 import { WeatherType } from "./weather";
+import {Biome} from "#enums/biome";
+import {Species} from "#enums/species";
+import {Abilities} from "#enums/abilities";
 
 export interface EncounterRequirement {
   meetsRequirement(scene: BattleScene): boolean;
