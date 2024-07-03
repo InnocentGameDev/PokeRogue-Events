@@ -2650,15 +2650,13 @@ export default class BattleScene extends SceneBase {
     let encounter: MysteryEncounter;
     if (!Utils.isNullOrUndefined(Overrides.MYSTERY_ENCOUNTER_OVERRIDE) && allMysteryEncounters.hasOwnProperty(Overrides.MYSTERY_ENCOUNTER_OVERRIDE)) {
       encounter = allMysteryEncounters[Overrides.MYSTERY_ENCOUNTER_OVERRIDE];
-      encounter.meetsRequirements(this);
     } else {
       encounter = override?.encounterType >= 0 ? allMysteryEncounters[override?.encounterType] : null;
-      encounter.meetsRequirements(this);
     }
 
-    const biomeMysteryEncounters = mysteryEncountersByBiome.get(this.arena.biomeType);
     if (encounter) {
       encounter = new MysteryEncounter(encounter);
+      encounter.meetsRequirements(this);
       return encounter;
     }
 
@@ -2689,6 +2687,7 @@ export default class BattleScene extends SceneBase {
     let availableEncounters = [];
     // New encounter will never be the same as the most recent encounter
     const previousEncounter = this.mysteryEncounterFlags.encounteredEvents?.length > 0 ? this.mysteryEncounterFlags.encounteredEvents[this.mysteryEncounterFlags.encounteredEvents.length - 1][0] : null;
+    const biomeMysteryEncounters = mysteryEncountersByBiome.get(this.arena.biomeType);
     // If no valid encounters exist at tier, checks next tier down, continuing until there are some encounters available
     while (availableEncounters.length === 0 && tier >= 0) {
       availableEncounters = biomeMysteryEncounters
