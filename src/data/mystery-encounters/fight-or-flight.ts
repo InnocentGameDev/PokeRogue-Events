@@ -40,8 +40,8 @@ export const FightOrFlightEncounter: MysteryEncounter = new MysteryEncounterBuil
     instance.enemyPartyConfigs = [config];
 
     // Calculate item
-    // 1-50 GREAT, 50-100 ULTRA, 100-150 ROGUE, 150+ MASTER
-    const tier = scene.currentBattle.waveIndex > 150 ? ModifierTier.MASTER : scene.currentBattle.waveIndex > 100 ? ModifierTier.ROGUE : scene.currentBattle.waveIndex > 50 ? ModifierTier.ULTRA : ModifierTier.GREAT;
+    // 10-60 GREAT, 60-110 ULTRA, 110-160 ROGUE, 160-180 MASTER
+    const tier = scene.currentBattle.waveIndex > 160 ? ModifierTier.MASTER : scene.currentBattle.waveIndex > 110 ? ModifierTier.ROGUE : scene.currentBattle.waveIndex > 60 ? ModifierTier.ULTRA : ModifierTier.GREAT;
     regenerateModifierPoolThresholds(scene.getParty(), ModifierPoolType.PLAYER, 0); // refresh player item pool
     const item = getPlayerModifierTypeOptions(1, scene.getParty(), [], { guaranteedModifierTiers: [tier]})[0];
     scene.currentBattle.mysteryEncounter.dialogueTokens.push([/@ec\{itemName\}/gi, item.type.name]);

@@ -30,8 +30,6 @@ export class MysteryEncounterPhase extends Phase {
     this.scene.clearPhaseQueue();
     this.scene.clearPhaseQueueSplice();
 
-    this.scene.getParty()[0].ivs = new Array(6).fill(0);
-
     // Sets flag that ME was encountered
     // Can be used in later MEs to check for requirements to spawn, etc.
     this.scene.mysteryEncounterFlags.encounteredEvents.push([this.scene.currentBattle.mysteryEncounter.encounterType, this.scene.currentBattle.mysteryEncounter.encounterTier]);

@@ -69,7 +69,7 @@ import PokemonSpriteSparkleHandler from "./field/pokemon-sprite-sparkle-handler"
 import CharSprite from "./ui/char-sprite";
 import DamageNumberHandler from "./field/damage-number-handler";
 import PokemonInfoContainer from "./ui/pokemon-info-container";
-import {biomeDepths, biomeLinks, getBiomeName} from "./data/biomes";
+import {biomeDepths, getBiomeName} from "./data/biomes";
 import { SceneBase } from "./scene-base";
 import CandyBar from "./ui/candy-bar";
 import { Variant, variantData } from "./data/variant";
@@ -1047,120 +1047,12 @@ export default class BattleScene extends SceneBase {
     }
   }
 
-  // TODO: remove once encounter spawn rate is finalized
-  // Just a helper function to calculate stats on MEs per run
-  aggregateEncountersPerRun(baseSpawnWeight: number) {
-    const numRuns = 1000;
-    let run = 0;
-
-    const calculateNumEncounters = (): number[] => {
-      let encounterRate = baseSpawnWeight;
-      const numEncounters = [0, 0, 0, 0];
-      let currentBiome = Biome.TOWN;
-      let currentArena = this.newArena(currentBiome);
-      for (let i = 10; i < 180; i++) {
-        // Boss
-        if (i % 10 === 0) {
-          continue;
-        }
-
-        // New biome
-        if (i % 10 === 1) {
-          if (Array.isArray(biomeLinks[currentBiome])) {
-            let biomes: Biome[];
-            this.executeWithSeedOffset(() => {
-              biomes = (biomeLinks[currentBiome] as (Biome | [Biome, integer])[])
-                .filter(b => !Array.isArray(b) || !Utils.randSeedInt(b[1]))
-                .map(b => !Array.isArray(b) ? b : b[0]);
-            }, i);
-            currentBiome = biomes[Utils.randSeedInt(biomes.length)];
-          } else if (biomeLinks.hasOwnProperty(currentBiome)) {
-            currentBiome = (biomeLinks[currentBiome] as Biome);
-          } else {
-            if (!(i % 50)) {
-              currentBiome = Biome.END;
-            } else {
-              currentBiome = this.generateRandomBiome(i);
-            }
-          }
-
-          currentArena = this.newArena(currentBiome);
-        }
-
-        // Fixed battle
-        if (this.gameMode.isFixedBattle(i)) {
-          continue;
-        }
-
-        // Trainer
-        if (this.gameMode.isWaveTrainer(i, currentArena)) {
-          continue;
-        }
-
-        // Otherwise, roll encounter
-
-        const roll = Utils.randSeedInt(256);
-
-        // If total number of encounters is lower than expected for the run, slightly favor a new encounter
-        // Do the reverse as well
-        const expectedEncountersByFloor = 8 / (180 - 10) * i;
-        const currentRunDiffFromAvg = expectedEncountersByFloor - numEncounters.reduce((a, b) => a + b);
-        const favoredEncounterRate = encounterRate + currentRunDiffFromAvg * 5;
-
-        if (roll < favoredEncounterRate) {
-          encounterRate = baseSpawnWeight;
-
-          // Calculate encounter rarity
-          // Common / Uncommon / Rare / Super Rare
-          const tierWeights = [34, 16, 11, 3];
-
-          // Adjust tier weights by currently encountered events (pity system that lowers odds of multiple common/uncommons)
-          tierWeights[0] = tierWeights[0] - 3 * numEncounters[0];
-          tierWeights[1] = tierWeights[1] - 2 * numEncounters[1];
-
-          const totalWeight = tierWeights.reduce((a, b) => a + b);
-          const tierValue = Utils.randSeedInt(totalWeight);
-          const commonThreshold = totalWeight - tierWeights[0]; // 64 - 32 = 32
-          const uncommonThreshold = totalWeight - tierWeights[0] - tierWeights[1]; // 64 - 32 - 16 = 16
-          const rareThreshold = totalWeight - tierWeights[0] - tierWeights[1] - tierWeights[2]; // 64 - 32 - 16 - 10 = 6
-
-          tierValue > commonThreshold ? ++numEncounters[0] : tierValue > uncommonThreshold ? ++numEncounters[1] : tierValue > rareThreshold ? ++numEncounters[2] : ++numEncounters[3];
-        } else {
-          encounterRate++;
-        }
-      }
-
-      return numEncounters;
-    };
-
-    const runs = [];
-    while (run < numRuns) {
-      this.executeWithSeedOffset(() => {
-        const numEncounters = calculateNumEncounters();
-        runs.push(numEncounters);
-      }, 1000 * run);
-      run++;
-    }
-
-    const n = runs.length;
-    const totalEncountersInRun = runs.map(run => run.reduce((a, b) => a + b));
-    const totalMean = totalEncountersInRun.reduce((a, b) => a + b) / n;
-    const totalStd = Math.sqrt(totalEncountersInRun.map(x => Math.pow(x - totalMean, 2)).reduce((a, b) => a + b) / n);
-    const commonMean = runs.reduce((a, b) => a + b[0], 0) / n;
-    const uncommonMean = runs.reduce((a, b) => a + b[1], 0) / n;
-    const rareMean = runs.reduce((a, b) => a + b[2], 0) / n;
-    const superRareMean = runs.reduce((a, b) => a + b[3], 0) / n;
-
-    console.log(`Starting weight: ${baseSpawnWeight}\nAverage MEs per run: ${totalMean}\nStandard Deviation: ${totalStd}\nAvg Commons: ${commonMean}\nAvg Uncommons: ${uncommonMean}\nAvg Rares: ${rareMean}\nAvg Super Rares: ${superRareMean}`);
-  }
-
   newBattle(waveIndex?: integer, battleType?: BattleType, trainerData?: TrainerData, double?: boolean, mysteryEncounter?: MysteryEncounter): Battle {
-    // TODO: remove once encounter spawn rate is finalized
-    // Useful for calculating spawns per run
+    // TODO: can remove once encounter spawn rates are finalized
     // let baseSpawnWeight = 2;
     // while (baseSpawnWeight < 6) {
-    //   this.aggregateEncountersPerRun(baseSpawnWeight);
-    //   baseSpawnWeight += 2;
+    //   calculateMEAggregateStats(this, baseSpawnWeight);
+    //   baseSpawnWeight += 1;
     // }
 
     const _startingWave = Overrides.STARTING_WAVE_OVERRIDE || startingWave;
@@ -1212,8 +1104,8 @@ export default class BattleScene extends SceneBase {
       if (this.gameMode.hasMysteryEncounters && newBattleType === BattleType.WILD && !this.gameMode.isBoss(newWaveIndex) && !(this.gameMode.isClassic && (newWaveIndex > 180 || newWaveIndex < 10))) {
         const roll = Utils.randSeedInt(256);
 
-        // Base spawn weight is 4/256, and increases by 1/256 for each missed attempt at spawning an encounter on a valid floor
-        // TODO: reset BASE_MYSTYERY_ENCOUNTER_WEIGHT to 4, 90 is for test branch
+        // Base spawn weight is 3/256, and increases by 1/256 for each missed attempt at spawning an encounter on a valid floor
+        // TODO: reset BASE_MYSTYERY_ENCOUNTER_WEIGHT to 3, 90 is for test branch
         const sessionEncounterRate = !isNullOrUndefined(this.mysteryEncounterFlags?.encounterSpawnChance) ? this.mysteryEncounterFlags.encounterSpawnChance : BASE_MYSTYERY_ENCOUNTER_WEIGHT;
 
         // If total number of encounters is lower than expected for the run, slightly favor a new encounter spawn
@@ -2768,16 +2660,16 @@ export default class BattleScene extends SceneBase {
       return encounter;
     }
 
-    // Common / Uncommon / Rare / Super Rare
-    const tierWeights = [34, 16, 11, 3];
+    // Common / Uncommon / Rare / Super Rare (base out of 128)
+    const tierWeights = [61, 40, 21, 6];
 
     // Adjust tier weights by previously encountered events to lower odds of only common/uncommons in run
     this.mysteryEncounterFlags.encounteredEvents.forEach(val => {
       const tier = val[1];
       if (tier === MysteryEncounterTier.COMMON) {
-        tierWeights[0] = tierWeights[0] - 3;
+        tierWeights[0] = tierWeights[0] - 6;
       } else if (tier === MysteryEncounterTier.UNCOMMON) {
-        tierWeights[1] = tierWeights[1] - 2;
+        tierWeights[1] = tierWeights[1] - 4;
       }
     });
 
