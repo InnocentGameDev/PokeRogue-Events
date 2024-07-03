@@ -26,7 +26,7 @@ import { BerryType } from "#enums/berry-type";
 
 export const SleepingSnorlaxEncounter: MysteryEncounter = new MysteryEncounterBuilder()
   .withEncounterType(MysteryEncounterType.SLEEPING_SNORLAX)
-  .withEncounterTier(MysteryEncounterTier.UNCOMMON)
+  .withEncounterTier(MysteryEncounterTier.RARE)
   .withIntroSpriteConfigs([
     {
       spriteKey: Species.SNORLAX.toString(),

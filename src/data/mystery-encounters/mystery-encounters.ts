@@ -40,7 +40,7 @@ export const mysteryEncountersByBiome = new Map<Biome, MysteryEncounterType[]>([
   [Biome.TOWN, [
   ]],
   [Biome.PLAINS,[
-    MysteryEncounterType.SLEEPING_SNORLAX
+
   ]],
   [Biome.GRASS, [
     MysteryEncounterType.SLEEPING_SNORLAX
