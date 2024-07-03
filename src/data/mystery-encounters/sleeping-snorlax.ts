@@ -1,6 +1,7 @@
 import BattleScene from "../../battle-scene";
 import {
   EnemyPartyConfig,
+  EnemyPokemonConfig,
   initBattleWithEnemyConfig,
   leaveEncounterWithoutBattle,
   pushDialogueTokensFromPokemon,
@@ -15,18 +16,23 @@ import {MysteryEncounterOptionBuilder} from "../mystery-encounter-option";
 import {
   modifierTypes
 } from "#app/modifier/modifier-type";
-import PokemonSpecies, { PokemonForm, SpeciesFormKey } from "../pokemon-species";
-import { Type } from "../type";
-import { Abilities } from "#enums/abilities";
+import { getPokemonSpecies } from "../pokemon-species";
 import { Species } from "#enums/species";
-import { GrowthRate } from "../exp";
 import { StatusEffect } from "../status-effect";
 import { Moves } from "#enums/moves";
 import { SummonPhase } from "#app/phases";
 
 export const SleepingSnorlaxEncounter: MysteryEncounter = new MysteryEncounterBuilder()
   .withEncounterType(MysteryEncounterType.SLEEPING_SNORLAX)
-  .withIntroSpriteConfigs([]) // Set in onInit()
+  .withIntroSpriteConfigs([
+    {
+      spriteKey: Species.SNORLAX.toString(),
+      fileRoot: "pokemon",
+      hasShadow: true,
+      tint: 0.25,
+      repeat: true
+    }
+  ]) // Set in onInit()
   .withSceneRequirement(new WaveCountRequirement([10, 180])) // waves 10 to 180
   .withCatchAllowed(true)
   .withOnInit((scene: BattleScene) => {
@@ -40,13 +46,15 @@ export const SleepingSnorlaxEncounter: MysteryEncounter = new MysteryEncounterBu
     }
 
     // Calculate boss mon
-    const bossSpecies = new PokemonSpecies(Species.SNORLAX, 1, false, false, false, "Sleeping Pokémon", Type.NORMAL, null, 2.1, 460, Abilities.IMMUNITY, Abilities.THICK_FAT, Abilities.GLUTTONY, 540, 160, 110, 65, 65, 110, 30, 25, 50, 189, GrowthRate.SLOW, 87.5, false, true,
-      new PokemonForm("Normal", "", Type.NORMAL, null, 2.1, 460, Abilities.IMMUNITY, Abilities.THICK_FAT, Abilities.GLUTTONY, 540, 160, 110, 65, 65, 110, 30, 25, 50, 189, false, null, true),
-      new PokemonForm("G-Max", SpeciesFormKey.GIGANTAMAX, Type.NORMAL, null, 35, 460, Abilities.IMMUNITY, Abilities.THICK_FAT, Abilities.GLUTTONY, 640, 200, 130, 85, 75, 130, 20, 25, 50, 189));
+    const bossSpecies = getPokemonSpecies(Species.SNORLAX);
+    const pokemonConfig: EnemyPokemonConfig = {
+      species: bossSpecies,
+      isBoss: true,
+      status: StatusEffect.SLEEP
+    };
     const config: EnemyPartyConfig = {
       levelAdditiveMultiplier: 4,
-      pokemonBosses: [bossSpecies],
-      status: StatusEffect.SLEEP
+      pokemonConfigs: [pokemonConfig]
     };
     instance.enemyPartyConfigs = [config];
 
@@ -56,16 +64,6 @@ export const SleepingSnorlaxEncounter: MysteryEncounter = new MysteryEncounterBu
     const item = modifierTypes.LEFTOVERS;
     scene.currentBattle.mysteryEncounter.dialogueTokens.push([/@ec\{itemName\}/gi, item.name]);
     scene.currentBattle.mysteryEncounter.misc = item;
-
-    instance.spriteConfigs = [
-      {
-        spriteKey: bossSpecies.speciesId.toString(),
-        fileRoot: "pokemon",
-        hasShadow: true,
-        tint: 0.25,
-        repeat: true
-      }
-    ];
 
     return true;
   })

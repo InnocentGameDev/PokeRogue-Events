@@ -9,34 +9,41 @@ import {TrainingSessionEncounter} from "#app/data/mystery-encounters/training-se
 export const BASE_MYSTYERY_ENCOUNTER_WEIGHT = 90;
 import { Biome } from "#app/enums/biome";
 import { SleepingSnorlaxEncounter } from "./sleeping-snorlax";
+import { MysteryEncounterType } from "#enums/mystery-encounter-type";
 
+export const mysteryEncounterMasterList = new Map<MysteryEncounterType, MysteryEncounter>([
+  [MysteryEncounterType.MYSTERIOUS_CHALLENGERS, MysteriousChallengersEncounter],
+  [MysteryEncounterType.MYSTERIOUS_CHEST, MysteriousChestEncounter],
+  [MysteryEncounterType.DARK_DEAL, DarkDealEncounter],
+  [MysteryEncounterType.FIGHT_OR_FLIGHT, FightOrFlightEncounter],
+  [MysteryEncounterType.TRAINING_SESSION, TrainingSessionEncounter],
+  [MysteryEncounterType.SLEEPING_SNORLAX, SleepingSnorlaxEncounter]
+]);
 
 // Only add your MysterEncounter here if you want it to be in every biome.
 // We recommend designing biome-specific encounters for better flavor and variance
 export function initMysteryEncounters() {
   for (const biome of mysteryEncountersByBiome.keys()) {
     mysteryEncountersByBiome.get(biome).push(
-      MysteriousChallengersEncounter,
-      MysteriousChestEncounter,
-      DarkDealEncounter,
-      FightOrFlightEncounter,
-      TrainingSessionEncounter,
-      SleepingSnorlaxEncounter
+      MysteryEncounterType.MYSTERIOUS_CHALLENGERS,
+      MysteryEncounterType.MYSTERIOUS_CHEST,
+      MysteryEncounterType.DARK_DEAL,
+      MysteryEncounterType.FIGHT_OR_FLIGHT,
+      MysteryEncounterType.TRAINING_SESSION
     );
   }
 }
 
 
 // Add your MysteryEncounter to a biome to enable it to show up in that biome.
-export const mysteryEncountersByBiome = new Map<Biome, MysteryEncounter[]>([
+export const mysteryEncountersByBiome = new Map<Biome, MysteryEncounterType[]>([
   [Biome.TOWN, [
-
   ]],
   [Biome.PLAINS,[
 
   ]],
   [Biome.GRASS, [
-
+    MysteryEncounterType.SLEEPING_SNORLAX
   ]],
   [Biome.TALL_GRASS, [
 
@@ -45,7 +52,9 @@ export const mysteryEncountersByBiome = new Map<Biome, MysteryEncounter[]>([
 
   ]],
   [Biome.FOREST, [
+    MysteryEncounterType.SLEEPING_SNORLAX
   ]],
+
   [Biome.SEA, [
 
   ]],
@@ -62,12 +71,13 @@ export const mysteryEncountersByBiome = new Map<Biome, MysteryEncounter[]>([
 
   ]],
   [Biome.MOUNTAIN, [
+    MysteryEncounterType.SLEEPING_SNORLAX
   ]],
   [Biome.BADLANDS, [
 
   ]],
   [Biome.CAVE, [
-
+    MysteryEncounterType.SLEEPING_SNORLAX
   ]],
   [Biome.DESERT, [
 
@@ -109,6 +119,7 @@ export const mysteryEncountersByBiome = new Map<Biome, MysteryEncounter[]>([
 
   ]],
   [Biome.JUNGLE, [
+
   ]],
   [Biome.FAIRY_CAVE, [
 

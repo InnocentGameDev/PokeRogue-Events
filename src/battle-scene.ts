@@ -92,8 +92,9 @@ import { Species } from "#enums/species";
 import { UiTheme } from "#enums/ui-theme";
 import { TimedEventManager } from "#app/timed-event-manager.js";
 import MysteryEncounter, { MysteryEncounterTier, MysteryEncounterVariant } from "./data/mystery-encounter";
-import {mysteryEncountersByBiome, BASE_MYSTYERY_ENCOUNTER_WEIGHT} from "./data/mystery-encounters/mystery-encounters";
+import {mysteryEncountersByBiome, mysteryEncounterMasterList, BASE_MYSTYERY_ENCOUNTER_WEIGHT} from "./data/mystery-encounters/mystery-encounters";
 import {MysteryEncounterFlags} from "#app/data/mystery-encounter-flags";
+import { MysteryEncounterType } from "#enums/mystery-encounter-type";
 
 export const bypassLogin = import.meta.env.VITE_BYPASS_LOGIN === "1";
 
@@ -2755,15 +2756,16 @@ export default class BattleScene extends SceneBase {
    * @returns
    */
   getMysteryEncounter(override: MysteryEncounter): MysteryEncounter {
-    const biomeMysteryEncounters = mysteryEncountersByBiome.get(this.arena.biomeType);
+
     // Loading override or session encounter
     let encounter: MysteryEncounter;
-    if (!Utils.isNullOrUndefined(Overrides.MYSTERY_ENCOUNTER_OVERRIDE) && Overrides.MYSTERY_ENCOUNTER_OVERRIDE < biomeMysteryEncounters.length) {
-      encounter = biomeMysteryEncounters[Overrides.MYSTERY_ENCOUNTER_OVERRIDE];
+    if (!Utils.isNullOrUndefined(Overrides.MYSTERY_ENCOUNTER_OVERRIDE) && mysteryEncounterMasterList.has(Overrides.MYSTERY_ENCOUNTER_OVERRIDE)) {
+      encounter = mysteryEncounterMasterList[Overrides.MYSTERY_ENCOUNTER_OVERRIDE];
     } else {
-      encounter = override?.encounterType >= 0 ? biomeMysteryEncounters[override?.encounterType] : null;
+      encounter = override?.encounterType >= 0 ? mysteryEncounterMasterList[override?.encounterType] : null;
     }
 
+    const biomeMysteryEncounters = mysteryEncountersByBiome.get(this.arena.biomeType);
     if (encounter) {
       encounter = new MysteryEncounter(encounter);
       return encounter;
@@ -2798,15 +2800,15 @@ export default class BattleScene extends SceneBase {
     const previousEncounter = this.mysteryEncounterFlags.encounteredEvents?.length > 0 ? this.mysteryEncounterFlags.encounteredEvents[this.mysteryEncounterFlags.encounteredEvents.length - 1][0] : null;
     // If no valid encounters exist at tier, checks next tier down, continuing until there are some encounters available
     while (availableEncounters.length === 0 && tier >= 0) {
-      availableEncounters = biomeMysteryEncounters.filter((encounter) =>
-        encounter?.meetsRequirements(this) && encounter.encounterTier === tier && (isNullOrUndefined(previousEncounter) || encounter.encounterType !== previousEncounter));
+      availableEncounters = biomeMysteryEncounters.filter((encounterType) =>
+        mysteryEncounterMasterList[encounterType]?.meetsRequirements(this) && mysteryEncounterMasterList[encounterType].encounterTier === tier && (isNullOrUndefined(previousEncounter) || encounterType !== previousEncounter));
 
       tier--;
     }
 
     // If absolutely no encounters are available, spawn 0th encounter (mysterious trainers)
     if (availableEncounters.length === 0) {
-      return biomeMysteryEncounters[0];
+      return mysteryEncounterMasterList[MysteryEncounterType.MYSTERIOUS_CHALLENGERS];
     }
 
     encounter = availableEncounters[Utils.randSeedInt(availableEncounters.length)];

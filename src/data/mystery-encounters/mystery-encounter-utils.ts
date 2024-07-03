@@ -294,6 +294,7 @@ export class EnemyPokemonConfig {
   modifierTypes?: PokemonHeldItemModifierType[];
   dataSource?: PokemonData;
   tags?: BattlerTagType[];
+  status?: StatusEffect;
 }
 
 export class EnemyPartyConfig {
@@ -302,10 +303,7 @@ export class EnemyPartyConfig {
   trainerType?: TrainerType; // Generates trainer battle solely off trainer type
   trainerConfig?: TrainerConfig; // More customizable option for configuring trainer battle
   pokemonConfigs?: EnemyPokemonConfig[];
-  pokemonSpecies?: PokemonSpecies[];
-  pokemonBosses?: PokemonSpecies[];
   female?: boolean; // True for female trainer, false for male
-  status?: StatusEffect;
 }
 
 /**
@@ -321,12 +319,13 @@ export async function initBattleWithEnemyConfig(scene: BattleScene, partyConfig:
 
   const battle = scene.currentBattle;
 
-  const normalCount = partyConfig?.pokemonSpecies?.length || 0;
-  const bossCount = partyConfig?.pokemonBosses?.length || 0;
+  // const normalCount = partyConfig?.pokemonConfigs?.filter(p => !p.isBoss)?.length || 0;
+  // const bossCount = partyConfig?.pokemonConfigs?.filter(p => p.isBoss)?.length || 0;
+  let doubleBattle = partyConfig?.doubleBattle;
 
   // Trainer
   const trainerType = partyConfig?.trainerType;
-  const trainerConfig = partyConfig?.trainerConfig;
+  let trainerConfig = partyConfig?.trainerConfig;
   if (trainerType || trainerConfig) {
     scene.currentBattle.mysteryEncounter.encounterVariant = MysteryEncounterVariant.TRAINER_BATTLE;
     if (scene.currentBattle.trainer) {
@@ -334,9 +333,10 @@ export async function initBattleWithEnemyConfig(scene: BattleScene, partyConfig:
       scene.currentBattle.trainer.destroy();
     }
 
-    const trainerConfig = partyConfig?.trainerConfig ? partyConfig?.trainerConfig : trainerConfigs[trainerType];
+    trainerConfig = partyConfig?.trainerConfig ? partyConfig?.trainerConfig : trainerConfigs[trainerType];
 
     const doubleTrainer = trainerConfig.doubleOnly || (trainerConfig.hasDouble && partyConfig.doubleBattle);
+    doubleBattle = doubleTrainer;
     const trainerFemale = isNullOrUndefined(partyConfig.female) ? !!(Utils.randSeedInt(2)) : partyConfig.female;
     const newTrainer = new Trainer(scene, trainerConfig.trainerType, doubleTrainer ? TrainerVariant.DOUBLE : trainerFemale ? TrainerVariant.FEMALE : TrainerVariant.DEFAULT, null, null, null, trainerConfig);
     newTrainer.x += 300;
@@ -349,18 +349,18 @@ export async function initBattleWithEnemyConfig(scene: BattleScene, partyConfig:
   } else {
     // Wild
     scene.currentBattle.mysteryEncounter.encounterVariant = MysteryEncounterVariant.WILD_BATTLE;
-    battle.enemyLevels = new Array(normalCount + bossCount > 0 ? normalCount + bossCount : partyConfig?.doubleBattle ? 2 : 1).fill(null).map(() => scene.currentBattle.getLevelForWave());
+    battle.enemyLevels = new Array(partyConfig?.pokemonConfigs?.length > 0 ? partyConfig?.pokemonConfigs?.length : doubleBattle ? 2 : 1).fill(null).map(() => scene.currentBattle.getLevelForWave());
   }
 
   scene.getEnemyParty().forEach(enemyPokemon => enemyPokemon.destroy());
   battle.enemyParty = [];
   battle.double = doubleBattle;
 
-  // ME levels are modified by an additive value that scales with wave index
-  // Base scaling: Every 10 waves, modifier gets +1 level
+  // Adjust levels for battle by modifier
+  // ME levels are modified by an additive that scales with wave index
+  // Every 10 floors, 1 will be added to level value, which starts at 2
   // This can be amplified or counteracted by setting levelAdditiveMultiplier in config
-  // levelAdditiveMultiplier value of 0.5 will halve the modifier scaling, 2 will double it, etc.
-  // Leaving null/undefined will disable level scaling
+  // Leaving undefined will default to 0
   const mult = !isNullOrUndefined(partyConfig.levelAdditiveMultiplier) ? partyConfig.levelAdditiveMultiplier : 0;
   const additive = Math.max(Math.round((2 + scene.currentBattle.waveIndex / 10) * mult), 0);
   battle.enemyLevels = battle.enemyLevels.map(level => level + additive);
@@ -372,15 +372,13 @@ export async function initBattleWithEnemyConfig(scene: BattleScene, partyConfig:
       if (trainerType || trainerConfig) {
         battle.enemyParty[e] = battle.trainer.genPartyMember(e);
       } else {
-        // Normal pokemon loaded first, Bosses second
-        // If no species are specified, picks random
-
-        if (normalCount - 1 >= e) {
-          enemySpecies = partyConfig?.pokemonSpecies?.[e];
-        } else if (bossCount - 1 >= e - normalCount) {
-          scene.currentBattle.mysteryEncounter.encounterVariant = MysteryEncounterVariant.BOSS_BATTLE;
-          isBoss = true;
-          enemySpecies = partyConfig?.pokemonBosses?.[e];
+        if (e < partyConfig?.pokemonConfigs?.length) {
+          const config = partyConfig?.pokemonConfigs?.[e];
+          enemySpecies = config.species;
+          isBoss = config.isBoss;
+          if (isBoss) {
+            scene.currentBattle.mysteryEncounter.encounterVariant = MysteryEncounterVariant.BOSS_BATTLE;
+          }
         } else {
           enemySpecies = scene.randomSpecies(battle.waveIndex, level, true);
         }
@@ -390,52 +388,34 @@ export async function initBattleWithEnemyConfig(scene: BattleScene, partyConfig:
     }
 
     const enemyPokemon = scene.getEnemyParty()[e];
-    // Generate new id in case using data source
-    enemyPokemon.id = Utils.randSeedInt(4294967296);
+    if (isBoss) {
+      enemyPokemon.setBoss(true, scene.getEncounterBossSegments(scene.currentBattle.waveIndex, level, enemySpecies, true));
+    }
 
     if (e < (doubleBattle ? 2 : 1)) {
       enemyPokemon.setX(-66 + enemyPokemon.getFieldPositionOffset()[0]);
       enemyPokemon.resetSummonData();
     }
-    // we can't use trysetstatus because pokemon aint in battle yet
-    if (partyConfig?.status) {
-      enemyPokemon.status = new Status(partyConfig.status, 3);
-    }
+
     if (!loaded) {
       scene.gameData.setPokemonSeen(enemyPokemon, true, !!(trainerType || trainerConfig));
     }
 
     if (e < partyConfig?.pokemonConfigs?.length) {
-      const config = partyConfig?.pokemonConfigs?.[e];
-
-      // Set form
-      if (!isNullOrUndefined(config.formIndex)) {
-        enemyPokemon.formIndex = config.formIndex;
+      if (partyConfig.pokemonConfigs[e].status) {
+        // we can't use trysetstatus because pokemon aint in battle yet
+        enemyPokemon.status = new Status(partyConfig.pokemonConfigs[e].status, 3);
       }
-
-      // Set Boss
-      if (config.isBoss) {
-        let segments = !isNullOrUndefined(config.bossSegments) ? config.bossSegments : scene.getEncounterBossSegments(scene.currentBattle.waveIndex, level, enemySpecies, true);
-        if (!isNullOrUndefined(config.bossSegmentModifier)) {
-          segments += config.bossSegmentModifier;
-        }
-        enemyPokemon.setBoss(true, segments);
-      }
-
-      // Set tags
-      if (config.tags?.length > 0) {
+      if (partyConfig?.pokemonConfigs?.[e].tags?.length > 0) {
         const tags = partyConfig?.pokemonConfigs?.[e].tags;
         tags.forEach(tag => enemyPokemon.addTag(tag));
 
         // Requires re-priming summon data so that tags are not cleared on SummonPhase
         enemyPokemon.primeSummonData(enemyPokemon.summonData);
       }
-
-      enemyPokemon.initBattleInfo();
     }
 
     loadEnemyAssets.push(enemyPokemon.loadAssets());
-
 
     console.log(enemyPokemon.name, enemyPokemon.species.speciesId, enemyPokemon.stats);
   });
@@ -455,10 +435,10 @@ export async function initBattleWithEnemyConfig(scene: BattleScene, partyConfig:
   });
   if (!loaded) {
     regenerateModifierPoolThresholds(scene.getEnemyField(), battle.battleType === BattleType.TRAINER ? ModifierPoolType.TRAINER : ModifierPoolType.WILD);
-    const customModifiers = partyConfig?.pokemonConfigs?.map(config => config?.modifierTypes);
-    scene.generateEnemyModifiers(customModifiers);
+    scene.generateEnemyModifiers();
   }
 }
+
 
 /**
  * For trainer battles during mystery encounters
