@@ -24,6 +24,8 @@ import {Species} from "#enums/species";
 import {Type} from "#app/data/type";
 import {BattlerTagType} from "#enums/battler-tag-type";
 import PokemonData from "#app/system/pokemon-data";
+import {Biome} from "#enums/biome";
+import {biomeLinks} from "#app/data/biomes";
 
 /**
  * Util file for functions used in mystery encounters
@@ -560,4 +562,111 @@ export function applyEncounterDialogueTokens(scene: BattleScene, text: string): 
   }
 
   return text;
+}
+
+// TODO: remove once encounter spawn rate is finalized
+// Just a helper function to calculate stats on MEs per run
+export function calculateMEAggregateStats(scene: BattleScene, baseSpawnWeight: number) {
+  const numRuns = 1000;
+  let run = 0;
+
+  const calculateNumEncounters = (): number[] => {
+    let encounterRate = baseSpawnWeight;
+    const numEncounters = [0, 0, 0, 0];
+    let currentBiome = Biome.TOWN;
+    let currentArena = scene.newArena(currentBiome);
+    for (let i = 10; i < 180; i++) {
+      // Boss
+      if (i % 10 === 0) {
+        continue;
+      }
+
+      // New biome
+      if (i % 10 === 1) {
+        if (Array.isArray(biomeLinks[currentBiome])) {
+          let biomes: Biome[];
+          scene.executeWithSeedOffset(() => {
+            biomes = (biomeLinks[currentBiome] as (Biome | [Biome, integer])[])
+              .filter(b => !Array.isArray(b) || !Utils.randSeedInt(b[1]))
+              .map(b => !Array.isArray(b) ? b : b[0]);
+          }, i);
+          currentBiome = biomes[Utils.randSeedInt(biomes.length)];
+        } else if (biomeLinks.hasOwnProperty(currentBiome)) {
+          currentBiome = (biomeLinks[currentBiome] as Biome);
+        } else {
+          if (!(i % 50)) {
+            currentBiome = Biome.END;
+          } else {
+            currentBiome = scene.generateRandomBiome(i);
+          }
+        }
+
+        currentArena = scene.newArena(currentBiome);
+      }
+
+      // Fixed battle
+      if (scene.gameMode.isFixedBattle(i)) {
+        continue;
+      }
+
+      // Trainer
+      if (scene.gameMode.isWaveTrainer(i, currentArena)) {
+        continue;
+      }
+
+      // Otherwise, roll encounter
+
+      const roll = Utils.randSeedInt(256);
+
+      // If total number of encounters is lower than expected for the run, slightly favor a new encounter
+      // Do the reverse as well
+      const expectedEncountersByFloor = 8 / (180 - 10) * i;
+      const currentRunDiffFromAvg = expectedEncountersByFloor - numEncounters.reduce((a, b) => a + b);
+      const favoredEncounterRate = encounterRate + currentRunDiffFromAvg * 5;
+
+      if (roll < favoredEncounterRate) {
+        encounterRate = baseSpawnWeight;
+
+        // Calculate encounter rarity
+        // Common / Uncommon / Rare / Super Rare (base is out of 128)
+        const tierWeights = [61, 40, 21, 6];
+
+        // Adjust tier weights by currently encountered events (pity system that lowers odds of multiple common/uncommons)
+        tierWeights[0] = tierWeights[0] - 6 * numEncounters[0];
+        tierWeights[1] = tierWeights[1] - 4 * numEncounters[1];
+
+        const totalWeight = tierWeights.reduce((a, b) => a + b);
+        const tierValue = Utils.randSeedInt(totalWeight);
+        const commonThreshold = totalWeight - tierWeights[0]; // 64 - 32 = 32
+        const uncommonThreshold = totalWeight - tierWeights[0] - tierWeights[1]; // 64 - 32 - 16 = 16
+        const rareThreshold = totalWeight - tierWeights[0] - tierWeights[1] - tierWeights[2]; // 64 - 32 - 16 - 10 = 6
+
+        tierValue > commonThreshold ? ++numEncounters[0] : tierValue > uncommonThreshold ? ++numEncounters[1] : tierValue > rareThreshold ? ++numEncounters[2] : ++numEncounters[3];
+      } else {
+        encounterRate++;
+      }
+    }
+
+    return numEncounters;
+  };
+
+  const runs = [];
+  while (run < numRuns) {
+    scene.executeWithSeedOffset(() => {
+      const numEncounters = calculateNumEncounters();
+      runs.push(numEncounters);
+    }, 1000 * run);
+    run++;
+  }
+
+  const n = runs.length;
+  const totalEncountersInRun = runs.map(run => run.reduce((a, b) => a + b));
+  const totalMean = totalEncountersInRun.reduce((a, b) => a + b) / n;
+  const totalStd = Math.sqrt(totalEncountersInRun.map(x => Math.pow(x - totalMean, 2)).reduce((a, b) => a + b) / n);
+  const commonMean = runs.reduce((a, b) => a + b[0], 0) / n;
+  const uncommonMean = runs.reduce((a, b) => a + b[1], 0) / n;
+  const rareMean = runs.reduce((a, b) => a + b[2], 0) / n;
+  const superRareMean = runs.reduce((a, b) => a + b[3], 0) / n;
+
+  console.log(`Starting weight: ${baseSpawnWeight}\nAverage MEs per run: ${totalMean}\nStandard Deviation: ${totalStd}\nAvg Commons: ${commonMean}\nAvg Uncommons: ${uncommonMean}\nAvg Rares: ${rareMean}\nAvg Super Rares: ${superRareMean}`);
 }

@@ -114,7 +114,7 @@ export const MysteriousChallengersEncounter: MysteryEncounter = new MysteryEncou
       // Spawn hard fight with ULTRA/GREAT reward (can improve with luck)
       const config: EnemyPartyConfig = encounter.enemyPartyConfigs[1];
 
-      setCustomEncounterRewards(scene, { guaranteedModifierTiers: [ModifierTier.ULTRA, ModifierTier.GREAT], fillRemaining: true });
+      setCustomEncounterRewards(scene, { guaranteedModifierTiers: [ModifierTier.ULTRA, ModifierTier.GREAT, ModifierTier.GREAT], fillRemaining: true });
 
       return initBattleWithEnemyConfig(scene, config);
     })
@@ -126,7 +126,7 @@ export const MysteriousChallengersEncounter: MysteryEncounter = new MysteryEncou
       const config: EnemyPartyConfig = encounter.enemyPartyConfigs[2];
 
       // To avoid player level snowballing from picking this option
-      encounter.expMultiplier = 0.8;
+      encounter.expMultiplier = 0.9;
 
       setCustomEncounterRewards(scene, { guaranteedModifierTiers: [ModifierTier.ROGUE, ModifierTier.ULTRA, ModifierTier.GREAT], fillRemaining: true });
 
