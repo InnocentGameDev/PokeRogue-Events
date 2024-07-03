@@ -46,7 +46,7 @@ export abstract class EncounterPokemonRequirement implements EncounterRequiremen
   }
 
   // Doesn't require the "@ec" as prefix, just the string; populates the token with the attribute
-  // ex. @ec{protagonistSpecies} if strPrefix is simply "protagonist"
+  // ex. @ec{primarySpecies} if strPrefix is simply "primary"
   getMatchingDialogueToken(strPrefix:string, pokemon: PlayerPokemon): [RegExp, string] {
     return [(/@/gi), ""];
   }

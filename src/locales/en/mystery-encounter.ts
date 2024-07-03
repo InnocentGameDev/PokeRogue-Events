@@ -112,10 +112,10 @@ export const mysteryEncounter: SimpleTranslationEntries = {
   "sleeping_snorlax_option_2_selected_message": `.@d{32}.@d{32}.@d{32}
   $You wait for a time, but the Snorlax's yawns make your party sleepy.`,
   "sleeping_snorlax_option_2_good_result": "When you all awaken, the Snorlax is no where to be found - but your Pokémon are all healed!",
-  "sleeping_snorlax_option_2_bad_result": `Your @ec{option2ProtagonistName} is still asleep...
+  "sleeping_snorlax_option_2_bad_result": `Your @ec{primaryName} is still asleep...
   $But on the bright side, the Snorlax left something behind...
-  $@s{item_fanfare}You gained a Leftovers!\nApply it to one of your Pokémon.`,
-  "sleeping_snorlax_option_3_good_result": "Your @ec{option3ProtagonistName} uses @ec{option3ProtagonistMove}! It steals Leftovers off the sleeping Snorlax and you make out like bandits!",
+  $@s{item_fanfare}You gained a Berry!`,
+  "sleeping_snorlax_option_3_good_result": "Your @ec{option3PrimaryName} uses @ec{option3PrimaryMove}! @s{item_fanfare}It steals Leftovers off the sleeping Snorlax and you make out like bandits!",
   // "sleeping_snorlax_outro_win": "The mysterious challengers were defeated!",
 
 } as const;

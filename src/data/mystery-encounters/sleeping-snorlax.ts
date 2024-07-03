@@ -8,12 +8,14 @@ import {
   setCustomEncounterRewards,
   showEncounterText
 } from "./mystery-encounter-utils";
-import MysteryEncounter, {MysteryEncounterBuilder} from "../mystery-encounter";
+import MysteryEncounter, {MysteryEncounterBuilder, MysteryEncounterTier} from "../mystery-encounter";
 import * as Utils from "../../utils";
 import {MysteryEncounterType} from "#enums/mystery-encounter-type";
-import {MoveRequirement, StatusEffectRequirement, WaveCountRequirement} from "../mystery-encounter-requirements";
+import {MoveRequirement, WaveCountRequirement} from "../mystery-encounter-requirements";
 import {MysteryEncounterOptionBuilder} from "../mystery-encounter-option";
 import {
+  BerryModifierType,
+  ModifierTypeOption,
   modifierTypes
 } from "#app/modifier/modifier-type";
 import { getPokemonSpecies } from "../pokemon-species";
@@ -21,9 +23,11 @@ import { Species } from "#enums/species";
 import { StatusEffect } from "../status-effect";
 import { Moves } from "#enums/moves";
 import { SummonPhase } from "#app/phases";
+import { BerryType } from "#enums/berry-type";
 
 export const SleepingSnorlaxEncounter: MysteryEncounter = new MysteryEncounterBuilder()
   .withEncounterType(MysteryEncounterType.SLEEPING_SNORLAX)
+  .withEncounterTier(MysteryEncounterTier.UNCOMMON)
   .withIntroSpriteConfigs([
     {
       spriteKey: Species.SNORLAX.toString(),
@@ -53,44 +57,38 @@ export const SleepingSnorlaxEncounter: MysteryEncounter = new MysteryEncounterBu
       status: StatusEffect.SLEEP
     };
     const config: EnemyPartyConfig = {
-      levelAdditiveMultiplier: 4,
+      levelAdditiveMultiplier: 2,
       pokemonConfigs: [pokemonConfig]
     };
     instance.enemyPartyConfigs = [config];
 
     // Calculate item
     // 1-60 ULTRA, 60-120 ROGUE, 120+ MASTER
-
-    const item = modifierTypes.LEFTOVERS;
-    scene.currentBattle.mysteryEncounter.dialogueTokens.push([/@ec\{itemName\}/gi, item.name]);
-    scene.currentBattle.mysteryEncounter.misc = item;
-
     return true;
   })
   .withOption(new MysteryEncounterOptionBuilder()
     .withOptionPhase(async (scene: BattleScene) => {
       // Pick battle
-      //setEncounterRewards(scene, { guaranteedModifiers: [], fillRemaining: false});
+      // Do we want special rewards for this?
+      // setCustomEncounterRewards(scene, { guaranteedModifierTypeOptions: [new ModifierTypeOption(modifierTypes.LEFTOVERS(), 0)], fillRemaining: true});
       await initBattleWithEnemyConfig(scene, scene.currentBattle.mysteryEncounter.enemyPartyConfigs[0]);
     })
     .build())
   .withOption(new MysteryEncounterOptionBuilder()
-    .withProtagonistPokemonRequirement(new StatusEffectRequirement(StatusEffect.SLEEP, 1, true)) // find at least one pokemon that ain't sleepin
-    .withProtagonistPokemonRequirement(new StatusEffectRequirement(StatusEffect.FAINT, 1, true)) // that same pokemon better not be fainted
     .withOptionPhase(async (scene: BattleScene) => {
       const instance = scene.currentBattle.mysteryEncounter;
       pushDialogueTokensFromPokemon(instance);
+      console.log(instance);
       let roll:integer;
       scene.executeWithSeedOffset(() => {
         roll = Utils.randSeedInt(16, 0);
       }, scene.currentBattle.waveIndex);
-      console.log(roll);
       if (roll > 4) {
-        // Fall alseep and get a leftovers (75%)
-        const p = instance.options[1].protagonistPokemon;
+        // Fall asleep and get a berry (75%)
+        const p = instance.primaryPokemon;
         p.trySetStatus(StatusEffect.SLEEP);
         p.updateInfo();
-        setCustomEncounterRewards(scene, { guaranteedModifiers: [modifierTypes.LEFTOVERS], fillRemaining: false});
+        setCustomEncounterRewards(scene, { guaranteedModifierTypeOptions: [new ModifierTypeOption(new BerryModifierType(BerryType.SITRUS), 0)], fillRemaining: false});
         await showEncounterText(scene, "mysteryEncounter:sleeping_snorlax_option_2_bad_result")
           .then(() => leaveEncounterWithoutBattle(scene));
         //await initBattleWithEnemyConfig(scene, scene.currentBattle.mysteryEncounter.enemyPartyConfigs[0]);
@@ -107,18 +105,16 @@ export const SleepingSnorlaxEncounter: MysteryEncounter = new MysteryEncounterBu
 
         await showEncounterText(scene, "mysteryEncounter:sleeping_snorlax_option_2_good_result")
           .then(() => leaveEncounterWithoutBattle(scene));
-
-
       }
     })
     .build())
   .withOption(new MysteryEncounterOptionBuilder()
-    .withProtagonistPokemonRequirement(new MoveRequirement([Moves.PLUCK, Moves.COVET, Moves.KNOCK_OFF, Moves.THIEF, Moves.TRICK, Moves.SWITCHEROO]))
+    .withPrimaryPokemonRequirement(new MoveRequirement([Moves.PLUCK, Moves.COVET, Moves.KNOCK_OFF, Moves.THIEF, Moves.TRICK, Moves.SWITCHEROO]))
     .withOptionPhase(async (scene: BattleScene) => {
       // Leave encounter with no rewards or exp
       const instance = scene.currentBattle.mysteryEncounter;
       pushDialogueTokensFromPokemon(instance);
-      setCustomEncounterRewards(scene, { guaranteedModifiers: [modifierTypes.LEFTOVERS], fillRemaining: false});
+      setCustomEncounterRewards(scene, { guaranteedModifierTypeOptions: [new ModifierTypeOption(modifierTypes.LEFTOVERS(), 0)], fillRemaining: false});
       await showEncounterText(scene, "mysteryEncounter:sleeping_snorlax_option_3_good_result").then(() => leaveEncounterWithoutBattle(scene));
     })
     .build())

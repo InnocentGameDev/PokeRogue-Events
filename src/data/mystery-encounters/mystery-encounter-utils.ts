@@ -109,38 +109,38 @@ export function getTokensFromScene(scene:BattleScene, reqs:EncounterSceneRequire
 // Auto-pushes dialogue tokens based on required attributes.
 // Grabs the first support pokemon. if you want multiple support pokemon in your text, you'll have to write it yourself.
 export function pushDialogueTokensFromPokemon(instance:MysteryEncounter) {
-  if (instance.protagonistPokemon?.length > 0) {
-    instance.dialogueTokens.push([/@ec\{protagonistName\}/gi, instance.protagonistPokemon.name]);
-    for (const req of instance.protagonistPokemonRequirements) {
+  if (instance.primaryPokemon?.length > 0) {
+    instance.dialogueTokens.push([/@ec\{primaryName\}/gi, instance.primaryPokemon.name]);
+    for (const req of instance.primaryPokemonRequirements) {
       if (!req.invertQuery) {
-        instance.dialogueTokens.push(req.getMatchingDialogueToken("protagonist", instance.protagonistPokemon));
+        instance.dialogueTokens.push(req.getMatchingDialogueToken("primary", instance.primaryPokemon));
       }
     }
   }
-  if (instance.supportPokemonRequirements?.length > 0 && instance.supportingPokemon?.length > 0) {
-    instance.dialogueTokens.push([/@ec\{supportName\}/gi, instance.supportingPokemon[0].name]);
-    for (const req of instance.supportPokemonRequirements) {
+  if (instance.secondaryPokemonRequirements?.length > 0 && instance.secondaryPokemon?.length > 0) {
+    instance.dialogueTokens.push([/@ec\{secondaryName\}/gi, instance.secondaryPokemon[0].name]);
+    for (const req of instance.secondaryPokemonRequirements) {
       if (!req.invertQuery) {
-        instance.dialogueTokens.push(req.getMatchingDialogueToken("support", instance.supportingPokemon[0]));
+        instance.dialogueTokens.push(req.getMatchingDialogueToken("secondary", instance.secondaryPokemon[0]));
       }
     }
   }
   for (let i = 0; i < instance.options.length; i++) {
     const opt = instance.options[i];
     const j = i + 1;
-    if (opt.protagonistPokemonRequirements?.length > 0 && opt.protagonistPokemon?.length > 0) {
-      instance.dialogueTokens.push([new RegExp("@ec\{option" + j + "ProtagonistName\\}", "gi"), opt.protagonistPokemon.name]);
-      for (const req of opt.protagonistPokemonRequirements) {
+    if (opt.primaryPokemonRequirements?.length > 0 && opt.primaryPokemon?.length > 0) {
+      instance.dialogueTokens.push([new RegExp("@ec\{option" + j + "PrimaryName\\}", "gi"), opt.primaryPokemon.name]);
+      for (const req of opt.primaryPokemonRequirements) {
         if (!req.invertQuery) {
-          instance.dialogueTokens.push(req.getMatchingDialogueToken("option" + j + "Protagonist", opt.protagonistPokemon));
+          instance.dialogueTokens.push(req.getMatchingDialogueToken("option" + j + "Primary", opt.primaryPokemon));
         }
       }
     }
-    if (opt.supportPokemonRequirements?.length > 0 && opt.supportingPokemon?.length > 0) {
-      instance.dialogueTokens.push([new RegExp("@ec\{option" + j + "SupportName\\}", "gi"), opt.supportingPokemon[0].name]);
-      for (const req of opt.supportPokemonRequirements) {
+    if (opt.secondaryPokemonRequirements?.length > 0 && opt.secondaryPokemon?.length > 0) {
+      instance.dialogueTokens.push([new RegExp("@ec\{option" + j + "SecondaryName\\}", "gi"), opt.secondaryPokemon[0].name]);
+      for (const req of opt.secondaryPokemonRequirements) {
         if (!req.invertQuery) {
-          instance.dialogueTokens.push(req.getMatchingDialogueToken("option" + j + "Support", opt.supportingPokemon[0]));
+          instance.dialogueTokens.push(req.getMatchingDialogueToken("option" + j + "Secondary", opt.secondaryPokemon[0]));
         }
       }
     }

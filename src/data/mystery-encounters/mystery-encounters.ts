@@ -11,18 +11,18 @@ import { Biome } from "#app/enums/biome";
 import { SleepingSnorlaxEncounter } from "./sleeping-snorlax";
 import { MysteryEncounterType } from "#enums/mystery-encounter-type";
 
-export const mysteryEncounterMasterList = new Map<MysteryEncounterType, MysteryEncounter>([
-  [MysteryEncounterType.MYSTERIOUS_CHALLENGERS, MysteriousChallengersEncounter],
-  [MysteryEncounterType.MYSTERIOUS_CHEST, MysteriousChestEncounter],
-  [MysteryEncounterType.DARK_DEAL, DarkDealEncounter],
-  [MysteryEncounterType.FIGHT_OR_FLIGHT, FightOrFlightEncounter],
-  [MysteryEncounterType.TRAINING_SESSION, TrainingSessionEncounter],
-  [MysteryEncounterType.SLEEPING_SNORLAX, SleepingSnorlaxEncounter]
-]);
+export const allMysteryEncounters : {[encounterType:string]: MysteryEncounter} = {};
 
 // Only add your MysterEncounter here if you want it to be in every biome.
 // We recommend designing biome-specific encounters for better flavor and variance
 export function initMysteryEncounters() {
+  allMysteryEncounters[MysteryEncounterType.MYSTERIOUS_CHALLENGERS] = MysteriousChallengersEncounter;
+  allMysteryEncounters[MysteryEncounterType.MYSTERIOUS_CHEST] = MysteriousChestEncounter;
+  allMysteryEncounters[MysteryEncounterType.DARK_DEAL] =  DarkDealEncounter;
+  allMysteryEncounters[MysteryEncounterType.FIGHT_OR_FLIGHT] = FightOrFlightEncounter;
+  allMysteryEncounters[MysteryEncounterType.TRAINING_SESSION] = TrainingSessionEncounter;
+  allMysteryEncounters[MysteryEncounterType.SLEEPING_SNORLAX] = SleepingSnorlaxEncounter;
+
   for (const biome of mysteryEncountersByBiome.keys()) {
     mysteryEncountersByBiome.get(biome).push(
       MysteryEncounterType.MYSTERIOUS_CHALLENGERS,
@@ -40,7 +40,7 @@ export const mysteryEncountersByBiome = new Map<Biome, MysteryEncounterType[]>([
   [Biome.TOWN, [
   ]],
   [Biome.PLAINS,[
-
+    MysteryEncounterType.SLEEPING_SNORLAX
   ]],
   [Biome.GRASS, [
     MysteryEncounterType.SLEEPING_SNORLAX

@@ -38,15 +38,15 @@ export default interface MysteryEncounter {
    */
   encounterTier?: MysteryEncounterTier;
   requirements?: EncounterSceneRequirement[];
-  protagonistPokemonRequirements?: EncounterPokemonRequirement[];
-  supportPokemonRequirements ?: EncounterPokemonRequirement[]; // A list of requirements that must ALL be met by a subset of pokemon to trigger the event
-  excludeProtagonistFromSupportRequirements?: boolean;
-  // Protagonist Pokemon is a single pokemon randomly selected from a set of pokemon that meet ALL protagonist pokemon requirements
-  protagonistPokemon?: PlayerPokemon;
+  primaryPokemonRequirements?: EncounterPokemonRequirement[];
+  secondaryPokemonRequirements ?: EncounterPokemonRequirement[]; // A list of requirements that must ALL be met by a subset of pokemon to trigger the event
+  excludePrimaryFromSupportRequirements?: boolean;
+  // Primary Pokemon is a single pokemon randomly selected from a set of pokemon that meet ALL primary pokemon requirements
+  primaryPokemon?: PlayerPokemon;
   // Support Pokemon are pokemon that meet ALL support pokemon requirements.
-  // Note that an individual requirement may require multiple pokemon, but the resulting pokemon after all support requirements are met may be lower than expected
-  // If the protagonist pokemon and supporting pokemon are the same and ExcexcludeProtagonistFromSupportRequirements flag is true, protagonist pokemon may be promoted from support pool
-  supportingPokemon?: PlayerPokemon[];
+  // Note that an individual requirement may require multiple pokemon, but the resulting pokemon after all secondary requirements are met may be lower than expected
+  // If the primary pokemon and supporting pokemon are the same and ExcludePrimaryFromSupportRequirements flag is true, primary pokemon may be promoted from secondary pool
+  secondaryPokemon?: PlayerPokemon[];
   doEncounterRewards?: (scene: BattleScene) => boolean;
   onInit?: (scene: BattleScene) => boolean;
   hideBattleIntroMessage?: boolean;
@@ -146,28 +146,36 @@ export default class MysteryEncounter implements MysteryEncounter {
    */
   meetsRequirements?(scene: BattleScene) {
     const sceneReq =  !this.requirements.some(requirement => !requirement.meetsRequirement(scene));
-    const suppReqs = this.meetsSupportingRequirementAndSupportingPokemonSelected(scene); // support is checked first to handle cases of protagonist overlapping with support
-    const proReqs = this.meetsProtagonistRequirementAndProtagonistPokemonSelected(scene);
-    return sceneReq && suppReqs && proReqs;
+    const secReqs = this.meetsSecondaryRequirementAndSecondaryPokemonSelected(scene); // secondary is checked first to handle cases of primary overlapping with secondary
+    const priReqs = this.meetsPrimaryRequirementAndPrimaryPokemonSelected(scene);
+
+    console.log("-------" + MysteryEncounterType[this.encounterType] + " Encounter Check -------");
+    console.log(this);
+    console.log( "sceneCheck: " + sceneReq);
+    console.log( "primaryCheck: " +  priReqs);
+    console.log( "secondaryCheck: " +  secReqs);
+    console.log(MysteryEncounterTier[this.encounterTier]);
+
+    return sceneReq && secReqs && priReqs;
   }
 
-  private meetsProtagonistRequirementAndProtagonistPokemonSelected?(scene: BattleScene) {
-    if (!this.protagonistPokemonRequirements) {
+  private meetsPrimaryRequirementAndPrimaryPokemonSelected?(scene: BattleScene) {
+    if (!this.primaryPokemonRequirements) {
       const activeMon = scene.getParty().filter(p => p.isActive());
       if (activeMon.length > 0) {
-        this.protagonistPokemon =  activeMon[0];
+        this.primaryPokemon =  activeMon[0];
       }
       return true;
     }
     let qualified:PlayerPokemon[] = scene.getParty();
-    for (const req of this.protagonistPokemonRequirements) {
+    for (const req of this.primaryPokemonRequirements) {
       console.log(req);
       if (req.meetsRequirement(scene)) {
         if (req instanceof EncounterPokemonRequirement)  {
           qualified = qualified.filter(pkmn => req.queryParty(scene.getParty()).includes(pkmn));
         }
       } else {
-        this.protagonistPokemon = null;
+        this.primaryPokemon = null;
         return false;
       }
     }
@@ -176,58 +184,58 @@ export default class MysteryEncounter implements MysteryEncounter {
       return false;
     }
 
-    if (this.excludeProtagonistFromSupportRequirements && this.supportingPokemon) {
-      const trueProtagonistPool = [];
+    if (this.excludePrimaryFromSupportRequirements && this.secondaryPokemon) {
+      const truePrimaryPool = [];
       const overlap = [];
       for (const qp of qualified) {
-        if (!this.supportingPokemon.includes(qp)) {
-          trueProtagonistPool.push(qp);
+        if (!this.secondaryPokemon.includes(qp)) {
+          truePrimaryPool.push(qp);
         } else {
           overlap.push(qp);
         }
 
       }
-      if (trueProtagonistPool.length > 0) {
+      if (truePrimaryPool.length > 0) {
         // always choose from the non-overlapping pokemon first
-        this.protagonistPokemon =  trueProtagonistPool[Utils.randSeedInt(trueProtagonistPool.length, 0)];
+        this.primaryPokemon =  truePrimaryPool[Utils.randSeedInt(truePrimaryPool.length, 0)];
         return true;
       } else {
-        // if there are multiple overlapping pokemon, we're okay - just choose one and take it out of the supporting pokemon pool
-        if (overlap.length > 1 || (this.supportingPokemon.length - overlap.length >= 1)) {
+        // if there are multiple overlapping pokemon, we're okay - just choose one and take it out of the primary pokemon pool
+        if (overlap.length > 1 || (this.secondaryPokemon.length - overlap.length >= 1)) {
           // is this working?
-          this.protagonistPokemon = overlap[Utils.randSeedInt(overlap.length, 0)];
-          this.supportingPokemon = this.supportingPokemon.filter((supp)=> supp !== this.protagonistPokemon);
+          this.primaryPokemon = overlap[Utils.randSeedInt(overlap.length, 0)];
+          this.secondaryPokemon = this.secondaryPokemon.filter((supp)=> supp !== this.primaryPokemon);
           return true;
         }
-        console.log("Mystery Encounter Edge Case: Requirement not met due to protagonist pokemon overlapping with support pokemon. There's no valid protagonist pokemon left.");
+        console.log("Mystery Encounter Edge Case: Requirement not met due to primary pokemon overlapping with secondary pokemon. There's no valid primary pokemon left.");
         return false;
       }
     } else {
-      // this means we CAN have the same pokemon be a protagonist and supporting pokemon, so just choose any qualifying one randomly.
-      this.protagonistPokemon = qualified[Utils.randSeedInt(qualified.length, 0)];
+      // this means we CAN have the same pokemon be a primary and secondary pokemon, so just choose any qualifying one randomly.
+      this.primaryPokemon = qualified[Utils.randSeedInt(qualified.length, 0)];
       return true;
     }
   }
 
-  private meetsSupportingRequirementAndSupportingPokemonSelected?(scene: BattleScene) {
-    if (!this.supportPokemonRequirements) {
-      this.supportingPokemon = [];
+  private meetsSecondaryRequirementAndSecondaryPokemonSelected?(scene: BattleScene) {
+    if (!this.secondaryPokemonRequirements) {
+      this.secondaryPokemon = [];
       return true;
     }
 
     let qualified:PlayerPokemon[] = scene.getParty();
-    for (const req of this.supportPokemonRequirements) {
+    for (const req of this.secondaryPokemonRequirements) {
       if (req.meetsRequirement(scene)) {
         if (req instanceof EncounterPokemonRequirement)  {
           qualified = qualified.filter(pkmn => req.queryParty(scene.getParty()).includes(pkmn));
 
         }
       } else {
-        this.supportingPokemon = [];
+        this.secondaryPokemon = [];
         return false;
       }
     }
-    this.supportingPokemon = qualified;
+    this.secondaryPokemon = qualified;
     return true;
   }
 
@@ -248,9 +256,9 @@ export class MysteryEncounterBuilder implements Partial<MysteryEncounter> {
   dialogue?: MysteryEncounterDialogue;
   encounterTier?: MysteryEncounterTier;
   requirements?: EncounterSceneRequirement[] = [];
-  protagonistPokemonRequirements?: EncounterPokemonRequirement[] = [];
-  supportPokemonRequirements ?: EncounterPokemonRequirement[] = [];
-  excludeProtagonistFromSupportRequirements?: boolean;
+  primaryPokemonRequirements?: EncounterPokemonRequirement[] = [];
+  secondaryPokemonRequirements ?: EncounterPokemonRequirement[] = [];
+  excludePrimaryFromSupportRequirements?: boolean;
   dialogueTokens?: [RegExp, string][];
   doEncounterRewards?: (scene: BattleScene) => boolean;
   onInit?: (scene: BattleScene) => boolean;
@@ -332,22 +340,19 @@ export class MysteryEncounterBuilder implements Partial<MysteryEncounter> {
     return Object.assign(this, { requirements: this.requirements });
   }
 
-  withProtagonistPokemonRequirement(requirement: EncounterPokemonRequirement): this & Required<Pick<MysteryEncounter, "protagonistPokemonRequirements">> {
-    this.protagonistPokemonRequirements.push(requirement);
-    return Object.assign(this, { protagonistPokemonRequirements: this.protagonistPokemonRequirements });
+  withPrimaryPokemonRequirement(requirement: EncounterPokemonRequirement): this & Required<Pick<MysteryEncounter, "primaryPokemonRequirements">> {
+    this.primaryPokemonRequirements.push(requirement);
+    return Object.assign(this, { primaryPokemonRequirements: this.primaryPokemonRequirements });
   }
 
-  // TODO: Maybe add an optional parameter for excluding protagonist pokemon from the support cast?
-  // ex. if your only grass type pokemon, a snivy, is chosen as protagonist, if the support pokemon requires a grass type, the event won't trigger because
+  // TODO: Maybe add an optional parameter for excluding primary pokemon from the support cast?
+  // ex. if your only grass type pokemon, a snivy, is chosen as primary, if the support pokemon requires a grass type, the event won't trigger because
   // it's already been
-  withSupportPokemonRequirement(requirement: EncounterPokemonRequirement, excludeProtagonistFromSupportRequirements:boolean = false): this & Required<Pick<MysteryEncounter, "supportPokemonRequirements">> {
-    this.supportPokemonRequirements.push(requirement);
-    this.excludeProtagonistFromSupportRequirements = excludeProtagonistFromSupportRequirements;
-    return Object.assign(this, { excludeProtagonistFromSupportRequirements: this.excludeProtagonistFromSupportRequirements, supportPokemonRequirements: this.supportPokemonRequirements });
+  withSecondaryPokemonRequirement(requirement: EncounterPokemonRequirement, excludePrimaryFromSecondaryRequirements:boolean = false): this & Required<Pick<MysteryEncounter, "secondaryPokemonRequirements">> {
+    this.secondaryPokemonRequirements.push(requirement);
+    this.excludePrimaryFromSupportRequirements = excludePrimaryFromSecondaryRequirements;
+    return Object.assign(this, { excludePrimaryFromSecondaryRequirements: this.excludePrimaryFromSupportRequirements, secondaryPokemonRequirements: this.secondaryPokemonRequirements });
   }
-
-
-  //TODO: Split this into withSceneRequirement and withProtagonistPokemonRequirement and withSupportingPokemonRequirement
 
   /**
    * Can set custom encounter rewards via this callback function

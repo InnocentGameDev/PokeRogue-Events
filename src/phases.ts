@@ -852,6 +852,10 @@ export class EncounterPhase extends BattlePhase {
     if (battle.battleType === BattleType.TRAINER) {
       loadEnemyAssets.push(battle.trainer.loadAssets().then(() => battle.trainer.initSprite()));
     } else if (battle.battleType === BattleType.MYSTERY_ENCOUNTER) {
+      if (!battle.mysteryEncounter) {
+        const newEncounter = this.scene.getMysteryEncounter(mysteryEncounter);
+        battle.mysteryEncounter = newEncounter;
+      }
       loadEnemyAssets.push(battle.mysteryEncounter.introVisuals.loadAssets().then(() => battle.mysteryEncounter.introVisuals.initSprite()));
     } else {
       // This block only applies for double battles to init the boss segments (idk why it's split up like this)
