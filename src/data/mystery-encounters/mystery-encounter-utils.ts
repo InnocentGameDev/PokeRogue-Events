@@ -406,7 +406,8 @@ export async function initBattleWithEnemyConfig(scene: BattleScene, partyConfig:
     if (e < partyConfig?.pokemonConfigs?.length) {
       if (partyConfig.pokemonConfigs[e].status) {
         // we can't use trysetstatus because pokemon aint in battle yet
-        enemyPokemon.status = new Status(partyConfig.pokemonConfigs[e].status, 3);
+        // uh, we're defaulting to cureturn 3 for sleep...
+        enemyPokemon.status = new Status(partyConfig.pokemonConfigs[e].status, 0, 3);
       }
       if (partyConfig?.pokemonConfigs?.[e].tags?.length > 0) {
         const tags = partyConfig?.pokemonConfigs?.[e].tags;

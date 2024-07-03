@@ -2650,8 +2650,10 @@ export default class BattleScene extends SceneBase {
     let encounter: MysteryEncounter;
     if (!Utils.isNullOrUndefined(Overrides.MYSTERY_ENCOUNTER_OVERRIDE) && allMysteryEncounters.hasOwnProperty(Overrides.MYSTERY_ENCOUNTER_OVERRIDE)) {
       encounter = allMysteryEncounters[Overrides.MYSTERY_ENCOUNTER_OVERRIDE];
+      encounter.meetsRequirements(this);
     } else {
       encounter = override?.encounterType >= 0 ? allMysteryEncounters[override?.encounterType] : null;
+      encounter.meetsRequirements(this);
     }
 
     const biomeMysteryEncounters = mysteryEncountersByBiome.get(this.arena.biomeType);

@@ -160,10 +160,12 @@ export default class MysteryEncounter implements MysteryEncounter {
   }
 
   private meetsPrimaryRequirementAndPrimaryPokemonSelected?(scene: BattleScene) {
-    if (!this.primaryPokemonRequirements) {
-      const activeMon = scene.getParty().filter(p => p.isActive());
+    if (this.primaryPokemonRequirements.length === 0) {
+      const activeMon = scene.getParty().filter(p => p.isActive(true));
       if (activeMon.length > 0) {
         this.primaryPokemon =  activeMon[0];
+      } else {
+        this.primaryPokemon = scene.getParty().filter(p => !p.isFainted())[0];
       }
       return true;
     }
