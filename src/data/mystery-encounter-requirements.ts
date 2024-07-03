@@ -573,7 +573,7 @@ export class StatusEffectRequirement extends EncounterPokemonRequirement {
       pokemon.status?.effect ===(a);
     });
     if (reqStatus.length > 0) {
-      return [new RegExp("@ec\{" + str + "Status\\}", "gi"), Abilities[reqStatus[0]]];
+      return [new RegExp("@ec\{" + str + "Status\\}", "gi"), StatusEffect[reqStatus[0]]];
     }
     return null;
   }

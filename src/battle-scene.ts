@@ -239,7 +239,6 @@ export default class BattleScene extends SceneBase {
   public money: integer;
   public pokemonInfoContainer: PokemonInfoContainer;
   private party: PlayerPokemon[];
-  public mysteryEncounterFlags: MysteryEncounterFlags;
   /** Combined Biome and Wave count text */
   private biomeWaveText: Phaser.GameObjects.Text;
   private moneyText: Phaser.GameObjects.Text;
@@ -281,6 +280,8 @@ export default class BattleScene extends SceneBase {
   private infoToggles: InfoToggle[] = [];
 
   public eventManager: TimedEventManager;
+
+  public mysteryEncounterFlags: MysteryEncounterFlags = new MysteryEncounterFlags(null);
 
   /**
    * Allows subscribers to listen for events
@@ -598,10 +599,6 @@ export default class BattleScene extends SceneBase {
 
     if (this.playTimeTimer) {
       this.playTimeTimer.destroy();
-    }
-
-    if (Utils.isNullOrUndefined(this.mysteryEncounterFlags)) {
-      this.mysteryEncounterFlags = new MysteryEncounterFlags(null);
     }
 
     this.playTimeTimer = this.time.addEvent({
