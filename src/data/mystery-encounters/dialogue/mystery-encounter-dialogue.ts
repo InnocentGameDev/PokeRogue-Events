@@ -8,6 +8,7 @@ import { SleepingSnorlaxDialogue } from "./sleeping-snorlax-dialogue";
 import {DepartmentStoreSaleDialogue} from "#app/data/mystery-encounters/dialogue/department-store-sale-dialogue";
 import {ShadyVitaminDealerDialogue} from "#app/data/mystery-encounters/dialogue/shady-vitamin-dealer";
 import {TextStyle} from "#app/ui/text";
+import { GettingLostAtSeaDialogue } from "./getting-lost-at-sea-dialogue";
 
 export class TextDisplay {
   speaker?: TemplateStringsArray | `mysteryEncounter:${string}`;
@@ -98,4 +99,5 @@ export function initMysteryEncounterDialogue() {
   allMysteryEncounterDialogue[MysteryEncounterType.SLEEPING_SNORLAX] = SleepingSnorlaxDialogue;
   allMysteryEncounterDialogue[MysteryEncounterType.DEPARTMENT_STORE_SALE] = DepartmentStoreSaleDialogue;
   allMysteryEncounterDialogue[MysteryEncounterType.SHADY_VITAMIN_DEALER] = ShadyVitaminDealerDialogue;
+  allMysteryEncounterDialogue[MysteryEncounterType.GETTING_LOST_AT_SEA]= GettingLostAtSeaDialogue;
 }

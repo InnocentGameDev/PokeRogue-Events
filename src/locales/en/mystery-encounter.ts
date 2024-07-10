@@ -181,4 +181,17 @@ export const mysteryEncounter: SimpleTranslationEntries = {
   "sleeping_snorlax_option_3_good_result": "Your @ec{option3PrimaryName} uses @ec{option3PrimaryMove}! @s{item_fanfare}It steals Leftovers off the sleeping Snorlax and you make out like bandits!",
   // "sleeping_snorlax_outro_win": "The mysterious challengers were defeated!",
 
+  "getting_lost_intro_message": "You get lost.",
+  "getting_lost_intro_dialogue": "Certain Pokémons can help you get back on track unharmed",
+  "getting_lost_title": "Getting lost ({{location}})",
+  "getting_lost_option_1_label": "Let {{pokemon}} guide you back",
+  "getting_lost_option_1_tooltip": "Needs a {{type}} type in the party. That Pokémon levels up twice.",
+  "getting_lost_option_1_selected": "{{pokemon}} guides you back to safety and gained 2 levels!",
+  "getting_lost_option_2_label": "Let {{pokemon}} guide you back",
+  "getting_lost_option_2_tooltip": "Needs a {{type}} type in the party. That Pokémon levels up twice.",
+  "getting_lost_option_2_selected": "{{pokemon}} guides you back to safety and gained 2 levels!",
+  "getting_lost_option_3_label": "Wander aimlessly until you're back on track",
+  "getting_lost_option_3_tooltip": "All your Pokémon lose 33% of their HP",
+  "getting_lost_option_3_selected": "You wanted aimlessly and eventually find your way back! Your Pokemons lost 33% of their HP!",
+  "getting_lost_outro_good": "HUH?",
 } as const;
