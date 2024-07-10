@@ -1,7 +1,7 @@
 import BattleScene from "../../battle-scene";
 import { ModifierTier } from "#app/modifier/modifier-tier";
 import {modifierTypes} from "#app/modifier/modifier-type";
-import { EnemyPartyConfig, initBattleWithEnemyConfig, setCustomEncounterRewards } from "#app/data/mystery-encounters/mystery-encounter-utils";
+import { EnemyPartyConfig, initBattleWithEnemyConfig, setEncounterRewards } from "#app/data/mystery-encounters/mystery-encounter-utils";
 import { MysteryEncounterType } from "#enums/mystery-encounter-type";
 import MysteryEncounter, {MysteryEncounterBuilder, MysteryEncounterTier} from "../mystery-encounter";
 import { MysteryEncounterOptionBuilder } from "../mystery-encounter-option";
@@ -16,7 +16,7 @@ import {PartyMemberStrength} from "#enums/party-member-strength";
 
 export const MysteriousChallengersEncounter: MysteryEncounter = new MysteryEncounterBuilder()
   .withEncounterType(MysteryEncounterType.MYSTERIOUS_CHALLENGERS)
-  .withEncounterTier(MysteryEncounterTier.UNCOMMON)
+  .withEncounterTier(MysteryEncounterTier.GREAT)
   .withIntroSpriteConfigs([]) // These are set in onInit()
   .withSceneWaveRangeRequirement(10, 180) // waves 10 to 180
   .withOnInit((scene: BattleScene) => {
@@ -102,7 +102,7 @@ export const MysteriousChallengersEncounter: MysteryEncounter = new MysteryEncou
       // Spawn standard trainer battle with memory mushroom reward
       const config: EnemyPartyConfig = encounter.enemyPartyConfigs[0];
 
-      setCustomEncounterRewards(scene, { guaranteedModifierTypeFuncs: [modifierTypes.TM_COMMON, modifierTypes.TM_GREAT, modifierTypes.MEMORY_MUSHROOM], fillRemaining: true });
+      setEncounterRewards(scene, { guaranteedModifierTypeFuncs: [modifierTypes.TM_COMMON, modifierTypes.TM_GREAT, modifierTypes.MEMORY_MUSHROOM], fillRemaining: true });
 
       // Seed offsets to remove possibility of different trainers having exact same teams
       let ret;
@@ -118,7 +118,7 @@ export const MysteriousChallengersEncounter: MysteryEncounter = new MysteryEncou
       // Spawn hard fight with ULTRA/GREAT reward (can improve with luck)
       const config: EnemyPartyConfig = encounter.enemyPartyConfigs[1];
 
-      setCustomEncounterRewards(scene, { guaranteedModifierTiers: [ModifierTier.ULTRA, ModifierTier.GREAT, ModifierTier.GREAT], fillRemaining: true });
+      setEncounterRewards(scene, { guaranteedModifierTiers: [ModifierTier.ULTRA, ModifierTier.GREAT, ModifierTier.GREAT], fillRemaining: true });
 
       // Seed offsets to remove possibility of different trainers having exact same teams
       let ret;
@@ -137,7 +137,7 @@ export const MysteriousChallengersEncounter: MysteryEncounter = new MysteryEncou
       // To avoid player level snowballing from picking this option
       encounter.expMultiplier = 0.9;
 
-      setCustomEncounterRewards(scene, { guaranteedModifierTiers: [ModifierTier.ROGUE, ModifierTier.ULTRA, ModifierTier.GREAT], fillRemaining: true });
+      setEncounterRewards(scene, { guaranteedModifierTiers: [ModifierTier.ROGUE, ModifierTier.ULTRA, ModifierTier.GREAT], fillRemaining: true });
 
       // Seed offsets to remove possibility of different trainers having exact same teams
       let ret;
