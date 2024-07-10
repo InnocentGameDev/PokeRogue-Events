@@ -137,11 +137,9 @@ export const ShadyVitaminDealerEncounter: MysteryEncounter = new MysteryEncounte
       leaveEncounterWithoutBattle(scene);
     })
     .build())
-  .withOption(new MysteryEncounterOptionBuilder()
-    .withOptionPhase(async (scene: BattleScene) => {
-      // Leave encounter with no rewards or exp
-      leaveEncounterWithoutBattle(scene, true);
-      return true;
-    })
-    .build())
+  .withOptionPhase(async (scene: BattleScene) => {
+    // Leave encounter with no rewards or exp
+    leaveEncounterWithoutBattle(scene, true);
+    return true;
+  })
   .build();

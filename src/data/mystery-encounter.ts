@@ -4,7 +4,7 @@ import { MysteryEncounterType } from "#enums/mystery-encounter-type";
 import MysteryEncounterDialogue, {
   allMysteryEncounterDialogue
 } from "./mystery-encounters/dialogue/mystery-encounter-dialogue";
-import MysteryEncounterOption from "./mystery-encounter-option";
+import MysteryEncounterOption, { MysteryEncounterOptionBuilder, OptionPhaseCallback } from "./mystery-encounter-option";
 import {
   EncounterPokemonRequirement,
   EncounterSceneRequirement,
@@ -387,6 +387,17 @@ export class MysteryEncounterBuilder implements Partial<MysteryEncounter> {
   }
 
   /**
+   * Adds a streamlined option phase.
+   * Only use if no pre-/post-options or condtions necessary.
+   *
+   * @param callback - OptionPhaseCallback
+   * @returns
+   */
+  withOptionPhase(callback: OptionPhaseCallback) {
+    return this.withOption(new MysteryEncounterOptionBuilder().withOptionPhase(callback).build());
+  }
+
+  /**
    * Defines the sprites that will be shown on the enemy field when the encounter spawns
    * Can be one or more sprites, recommended not to exceed 4
    * @param spriteConfigs
@@ -438,7 +449,7 @@ export class MysteryEncounterBuilder implements Partial<MysteryEncounter> {
    * @param max optional max wave. If not given, defaults to min => exact wave
    * @returns
    */
-  withSceneWaveRangeRequirement(min: number, max?: number): this & Required<Pick<MysteryEncounter, "requirements">> {
+  withSceneWaveRangeRequirement(min: number, max?: number) {
     return this.withSceneRequirement(new WaveRangeRequirement([min, max ?? min]));
   }
 
