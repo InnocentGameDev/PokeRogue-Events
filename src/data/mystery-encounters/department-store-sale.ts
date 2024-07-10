@@ -5,7 +5,6 @@ import {
 } from "#app/data/mystery-encounters/mystery-encounter-utils";
 import MysteryEncounter, {MysteryEncounterBuilder, MysteryEncounterTier} from "../mystery-encounter";
 import { MysteryEncounterType } from "#enums/mystery-encounter-type";
-import {WaveCountRequirement} from "../mystery-encounter-requirements";
 import { MysteryEncounterOptionBuilder } from "../mystery-encounter-option";
 import {modifierTypes} from "#app/modifier/modifier-type";
 import {Species} from "#enums/species";
@@ -30,7 +29,7 @@ export const DepartmentStoreSaleEncounter: MysteryEncounter = new MysteryEncount
     }
   ])
   // .withHideIntroVisuals(false)
-  .withSceneRequirement(new WaveCountRequirement([10, 100]))
+  .withSceneWaveRangeRequirement(10, 100)
   .withOption(new MysteryEncounterOptionBuilder()
     .withOptionPhase(async (scene: BattleScene) => {
       // Choose TMs

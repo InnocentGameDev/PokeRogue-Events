@@ -10,7 +10,6 @@ import {
 } from "#app/data/mystery-encounters/mystery-encounter-utils";
 import MysteryEncounter, {MysteryEncounterBuilder, MysteryEncounterTier} from "../mystery-encounter";
 import { MysteryEncounterType } from "#enums/mystery-encounter-type";
-import {WaveCountRequirement} from "../mystery-encounter-requirements";
 import { MysteryEncounterOptionBuilder } from "../mystery-encounter-option";
 import {GameOverPhase} from "#app/phases";
 import {randSeedInt} from "#app/utils";
@@ -29,7 +28,7 @@ export const MysteriousChestEncounter: MysteryEncounter = new MysteryEncounterBu
     }
   ])
   .withHideIntroVisuals(false)
-  .withSceneRequirement(new WaveCountRequirement([10, 180])) // waves 2 to 180
+  .withSceneWaveRangeRequirement(10, 180) // waves 2 to 180
   .withOption(new MysteryEncounterOptionBuilder()
     .withPreOptionPhase(async (scene: BattleScene) => {
       // Play animation

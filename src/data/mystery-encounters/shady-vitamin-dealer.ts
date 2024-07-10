@@ -13,7 +13,6 @@ import {
   HealthRatioRequirement,
   MoneyRequirement,
   StatusEffectRequirement,
-  WaveCountRequirement
 } from "../mystery-encounter-requirements";
 import {MysteryEncounterOptionBuilder} from "../mystery-encounter-option";
 import {modifierTypes} from "#app/modifier/modifier-type";
@@ -42,7 +41,7 @@ export const ShadyVitaminDealerEncounter: MysteryEncounter = new MysteryEncounte
       y: 2
     }
   ])
-  .withSceneRequirement(new WaveCountRequirement([10, 180]))
+  .withSceneWaveRangeRequirement(10, 180)
   .withPrimaryPokemonRequirement(new StatusEffectRequirement([StatusEffect.NONE])) // Pokemon must not have status
   .withPrimaryPokemonRequirement(new HealthRatioRequirement([0.34, 1])) // Pokemon must have above 1/3rd HP
   .withOption(new MysteryEncounterOptionBuilder()

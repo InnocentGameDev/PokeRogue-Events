@@ -5,7 +5,6 @@ import { EnemyPartyConfig, initBattleWithEnemyConfig, setCustomEncounterRewards 
 import { MysteryEncounterType } from "#enums/mystery-encounter-type";
 import MysteryEncounter, {MysteryEncounterBuilder, MysteryEncounterTier} from "../mystery-encounter";
 import { MysteryEncounterOptionBuilder } from "../mystery-encounter-option";
-import { WaveCountRequirement } from "../mystery-encounter-requirements";
 import {
   trainerConfigs,
   TrainerPartyCompoundTemplate,
@@ -19,7 +18,7 @@ export const MysteriousChallengersEncounter: MysteryEncounter = new MysteryEncou
   .withEncounterType(MysteryEncounterType.MYSTERIOUS_CHALLENGERS)
   .withEncounterTier(MysteryEncounterTier.UNCOMMON)
   .withIntroSpriteConfigs([]) // These are set in onInit()
-  .withSceneRequirement(new WaveCountRequirement([10, 180])) // waves 10 to 180
+  .withSceneWaveRangeRequirement(10, 180) // waves 10 to 180
   .withOnInit((scene: BattleScene) => {
     const encounter = scene.currentBattle.mysteryEncounter;
     // Calculates what trainers are available for battle in the encounter

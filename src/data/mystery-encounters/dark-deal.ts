@@ -12,7 +12,7 @@ import {ModifierRewardPhase} from "#app/phases";
 import {getPokemonSpecies} from "../pokemon-species";
 import {MysteryEncounterType} from "#enums/mystery-encounter-type";
 import {PokeballType} from "../pokeball";
-import {PartySizeRequirement, WaveCountRequirement} from "../mystery-encounter-requirements";
+import {PartySizeRequirement} from "../mystery-encounter-requirements";
 import {MysteryEncounterOptionBuilder} from "../mystery-encounter-option";
 import {Type} from "#app/data/type";
 import {Species} from "#enums/species";
@@ -83,7 +83,7 @@ export const DarkDealEncounter: MysteryEncounter = new MysteryEncounterBuilder()
       repeat: true
     }
   ])
-  .withSceneRequirement(new WaveCountRequirement([30, 180])) // waves 30 to 180
+  .withSceneWaveRangeRequirement(30, 180) // waves 30 to 180
   .withSceneRequirement(new PartySizeRequirement([2, 6])) // Must have at least 2 pokemon in party
   .withCatchAllowed(true)
   .withOption(new MysteryEncounterOptionBuilder()

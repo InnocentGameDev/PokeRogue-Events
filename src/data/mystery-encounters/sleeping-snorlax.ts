@@ -9,7 +9,7 @@ import {
 import MysteryEncounter, {MysteryEncounterBuilder, MysteryEncounterTier} from "../mystery-encounter";
 import * as Utils from "../../utils";
 import {MysteryEncounterType} from "#enums/mystery-encounter-type";
-import {MoveRequirement, WaveCountRequirement} from "../mystery-encounter-requirements";
+import {MoveRequirement} from "../mystery-encounter-requirements";
 import {MysteryEncounterOptionBuilder} from "../mystery-encounter-option";
 import {
   ModifierTypeOption,
@@ -33,7 +33,7 @@ export const SleepingSnorlaxEncounter: MysteryEncounter = new MysteryEncounterBu
       repeat: true
     }
   ])
-  .withSceneRequirement(new WaveCountRequirement([10, 180])) // waves 10 to 180
+  .withSceneWaveRangeRequirement(10, 180) // waves 10 to 180
   .withCatchAllowed(true)
   .withHideWildIntroMessage(true)
   .withOnInit((scene: BattleScene) => {

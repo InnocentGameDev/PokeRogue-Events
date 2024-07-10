@@ -9,7 +9,6 @@ import {
 import {MysteryEncounterType} from "#enums/mystery-encounter-type";
 import MysteryEncounter, {MysteryEncounterBuilder, MysteryEncounterTier} from "../mystery-encounter";
 import {MysteryEncounterOptionBuilder} from "../mystery-encounter-option";
-import {WaveCountRequirement} from "../mystery-encounter-requirements";
 import {PlayerPokemon} from "#app/field/pokemon";
 import PokemonData from "#app/system/pokemon-data";
 import {randSeedShuffle} from "#app/utils";
@@ -35,7 +34,7 @@ export const TrainingSessionEncounter: MysteryEncounter = new MysteryEncounterBu
       y: 3
     }
   ])
-  .withSceneRequirement(new WaveCountRequirement([10, 180])) // waves 10 to 180
+  .withSceneWaveRangeRequirement(10, 180) // waves 10 to 180
   .withHideWildIntroMessage(true)
   .withOption(new MysteryEncounterOptionBuilder()
     .withPreOptionPhase(async (scene: BattleScene): Promise<boolean> => {
