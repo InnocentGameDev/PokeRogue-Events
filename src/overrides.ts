@@ -35,22 +35,22 @@ export const SEED_OVERRIDE: string = "";
 export const WEATHER_OVERRIDE: WeatherType = WeatherType.NONE;
 export const DOUBLE_BATTLE_OVERRIDE: boolean = false;
 export const SINGLE_BATTLE_OVERRIDE: boolean = false;
-export const STARTING_WAVE_OVERRIDE: integer = 0;
+export const STARTING_WAVE_OVERRIDE: integer = 11;
 export const STARTING_BIOME_OVERRIDE: Biome = Biome.TOWN;
 export const ARENA_TINT_OVERRIDE: TimeOfDay = null;
 // Multiplies XP gained by this value including 0. Set to null to ignore the override
-export const XP_MULTIPLIER_OVERRIDE: number = null;
+export const XP_MULTIPLIER_OVERRIDE: number = 10;
 // default 1000
 export const STARTING_MONEY_OVERRIDE: integer = 0;
 export const FREE_CANDY_UPGRADE_OVERRIDE: boolean = false;
 export const POKEBALL_OVERRIDE: { active: boolean, pokeballs: PokeballCounts } = {
-  active: false,
+  active: true,
   pokeballs: {
     [PokeballType.POKEBALL]: 5,
     [PokeballType.GREAT_BALL]: 0,
     [PokeballType.ULTRA_BALL]: 0,
     [PokeballType.ROGUE_BALL]: 0,
-    [PokeballType.MASTER_BALL]: 0,
+    [PokeballType.MASTER_BALL]: 99,
   }
 };
 
@@ -71,7 +71,7 @@ export const POKEBALL_OVERRIDE: { active: boolean, pokeballs: PokeballCounts } =
 export const STARTER_FORM_OVERRIDES: Partial<Record<Species, number>> = {};
 
 // default 5 or 20 for Daily
-export const STARTING_LEVEL_OVERRIDE: integer = 0;
+export const STARTING_LEVEL_OVERRIDE: integer = 100;
 /**
  * SPECIES OVERRIDE
  * will only apply to the first starter in your party or each enemy pokemon
@@ -118,9 +118,9 @@ export const EGG_GACHA_PULL_COUNT_OVERRIDE: number = 0;
  */
 
 // 1 to 256, set to null to ignore
-export const MYSTERY_ENCOUNTER_RATE_OVERRIDE: number = null;
+export const MYSTERY_ENCOUNTER_RATE_OVERRIDE: number = 256;
 export const MYSTERY_ENCOUNTER_TIER_OVERRIDE: MysteryEncounterTier = null;
-export const MYSTERY_ENCOUNTER_OVERRIDE: MysteryEncounterType = null;
+export const MYSTERY_ENCOUNTER_OVERRIDE: MysteryEncounterType = MysteryEncounterType.CHOICE_OF_BALANCE;
 
 /**
  * MODIFIER / ITEM OVERRIDES
@@ -143,7 +143,7 @@ interface ModifierOverride {
     count?: integer
     type?: TempBattleStat|Stat|Nature|Type|BerryType|SpeciesStatBoosterItem
 }
-export const STARTING_MODIFIER_OVERRIDE: Array<ModifierOverride> = [];
+export const STARTING_MODIFIER_OVERRIDE: Array<ModifierOverride> = [{name: "EXP_SHARE", count: 5}];
 export const OPP_MODIFIER_OVERRIDE: Array<ModifierOverride> = [];
 
 export const STARTING_HELD_ITEMS_OVERRIDE: Array<ModifierOverride> = [];

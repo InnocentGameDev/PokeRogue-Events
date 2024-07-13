@@ -7,6 +7,7 @@ import { TrainingSessionDialogue } from "#app/data/mystery-encounters/dialogue/t
 import { SleepingSnorlaxDialogue } from "./dialogue/sleeping-snorlax-dialogue";
 import { DepartmentStoreSaleDialogue } from "#app/data/mystery-encounters/dialogue/department-store-sale-dialogue";
 import { ShadyVitaminDealerDialogue } from "#app/data/mystery-encounters/dialogue/shady-vitamin-dealer";
+import { ChoiceOfBalanceDialogue } from "#app/data/mystery-encounters/dialogue/choice-of-balance-dialogue";
 import { TextStyle } from "#app/ui/text";
 
 export class TextDisplay {
@@ -92,4 +93,5 @@ export function initMysteryEncounterDialogue() {
   allMysteryEncounterDialogue[MysteryEncounterType.SLEEPING_SNORLAX] = SleepingSnorlaxDialogue;
   allMysteryEncounterDialogue[MysteryEncounterType.DEPARTMENT_STORE_SALE] = DepartmentStoreSaleDialogue;
   allMysteryEncounterDialogue[MysteryEncounterType.SHADY_VITAMIN_DEALER] = ShadyVitaminDealerDialogue;
+  allMysteryEncounterDialogue[MysteryEncounterType.CHOICE_OF_BALANCE] = ChoiceOfBalanceDialogue;
 }

@@ -40,7 +40,7 @@ import { GameDataType } from "#enums/game-data-type";
 import { Moves } from "#enums/moves";
 import { PlayerGender } from "#enums/player-gender";
 import { Species } from "#enums/species";
-import { MysteryEncounterData } from "../data/mystery-encounters/mystery-encounter-data";
+import { MysteryEncounterData, MysteryEncounterAuras /*, AuraType, getAuraName*/ } from "../data/mystery-encounters/mystery-encounter-data";
 import MysteryEncounter from "../data/mystery-encounters/mystery-encounter";
 
 export const defaultStarterSpecies: Species[] = [
@@ -126,6 +126,7 @@ export interface SessionSaveData {
   challenges: ChallengeData[];
   mysteryEncounter: MysteryEncounter;
   mysteryEncounterData: MysteryEncounterData;
+  mysteryEncounterAuras: MysteryEncounterAuras
 }
 
 interface Unlocks {
@@ -842,7 +843,8 @@ export class GameData {
       timestamp: new Date().getTime(),
       challenges: scene.gameMode.challenges.map(c => new ChallengeData(c)),
       mysteryEncounter: scene.currentBattle.mysteryEncounter,
-      mysteryEncounterData: scene.mysteryEncounterData
+      mysteryEncounterData: scene.mysteryEncounterData,
+      mysteryEncounterAuras: scene.mysteryEncounterAuras
     } as SessionSaveData;
   }
 
@@ -934,6 +936,8 @@ export class GameData {
           scene.updateScoreText();
 
           scene.mysteryEncounterData = sessionData?.mysteryEncounterData ? sessionData?.mysteryEncounterData : new MysteryEncounterData(null);
+
+          scene.mysteryEncounterAuras = sessionData?.mysteryEncounterAuras ? sessionData?.mysteryEncounterAuras : new MysteryEncounterAuras();
 
           scene.newArena(sessionData.arena.biome);
 
@@ -1160,6 +1164,10 @@ export class GameData {
 
       if (k === "mysteryEncounterData") {
         return new MysteryEncounterData(v);
+      }
+
+      if (k === "mysteryEncounterAuras") {
+        return new MysteryEncounterAuras();
       }
 
       return v;

@@ -2676,6 +2676,8 @@ export class BattleEndPhase extends BattlePhase {
       }
     }
 
+    this.scene.mysteryEncounterAuras.UpdateAurasDurations();
+
     this.scene.updateModifiers().then(() => this.end());
   }
 }
@@ -4234,9 +4236,10 @@ export class MoneyRewardPhase extends BattlePhase {
 
     this.scene.addMoney(moneyAmount.value);
 
-    const userLocale = navigator.language || "en-US";
-    const formattedMoneyAmount = moneyAmount.value.toLocaleString(userLocale);
-    const message = i18next.t("battle:moneyWon", { moneyAmount: formattedMoneyAmount });
+    //const userLocale = navigator.language || "en-US";
+    //const formattedMoneyAmount = moneyAmount.value.toLocaleString(userLocale);
+    //const message = i18next.t("battle:moneyWon", { moneyAmount: formattedMoneyAmount });
+    const message = this.scene.getFormattedMoneyString(moneyAmount.value);
 
     this.scene.ui.showText(message, null, () => this.end(), null, true);
   }

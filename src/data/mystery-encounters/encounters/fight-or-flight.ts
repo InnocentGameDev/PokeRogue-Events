@@ -24,6 +24,7 @@ import { MysteryEncounterType } from "#enums/mystery-encounter-type";
 import BattleScene from "../../../battle-scene";
 import MysteryEncounter, { MysteryEncounterBuilder, MysteryEncounterTier } from "../mystery-encounter";
 import { MoveRequirement } from "../mystery-encounter-requirements";
+import { AuraType, getAuraName } from "#app/data/mystery-encounters/mystery-encounter-data";
 
 const validMovesForSteal = [
   Moves.PLUCK,
@@ -102,6 +103,7 @@ export const FightOrFlightEncounter: MysteryEncounter = MysteryEncounterBuilder
     // Pick battle
     const item = scene.currentBattle.mysteryEncounter.misc as ModifierTypeOption;
     setEncounterRewards(scene, { guaranteedModifierTypeOptions: [item], fillRemaining: false });
+    scene.mysteryEncounterAuras.AddAura([-1], 0.7, 5, getAuraName(AuraType.MONEY), 0);
     await initBattleWithEnemyConfig(scene, scene.currentBattle.mysteryEncounter.enemyPartyConfigs[0]);
   })
   .withOptionPhase(async (scene: BattleScene) => {

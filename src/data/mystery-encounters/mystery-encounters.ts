@@ -4,6 +4,7 @@ import { MysteriousChallengersEncounter } from "./encounters/mysterious-challeng
 import { MysteriousChestEncounter } from "./encounters/mysterious-chest";
 import { FightOrFlightEncounter } from "#app/data/mystery-encounters/encounters/fight-or-flight";
 import { TrainingSessionEncounter } from "#app/data/mystery-encounters/encounters/training-session";
+import { ChoiceOfBalanceEncounter } from "#app/data/mystery-encounters/encounters/choice-of-balance";
 import { Biome } from "#enums/biome";
 import { SleepingSnorlaxEncounter } from "./encounters/sleeping-snorlax";
 import { MysteryEncounterType } from "#enums/mystery-encounter-type";
@@ -95,6 +96,7 @@ export function initMysteryEncounters() {
   allMysteryEncounters[MysteryEncounterType.SLEEPING_SNORLAX] = SleepingSnorlaxEncounter;
   allMysteryEncounters[MysteryEncounterType.DEPARTMENT_STORE_SALE] = DepartmentStoreSaleEncounter;
   allMysteryEncounters[MysteryEncounterType.SHADY_VITAMIN_DEALER] = ShadyVitaminDealerEncounter;
+  allMysteryEncounters[MysteryEncounterType.CHOICE_OF_BALANCE] = ChoiceOfBalanceEncounter;
 
   // Append encounters that can occur in any biome to biome map
   const anyBiomeEncounters: MysteryEncounterType[] = Object.keys(MysteryEncounterType).filter(e => !isNaN(Number(e))).map(k => Number(k) as MysteryEncounterType);

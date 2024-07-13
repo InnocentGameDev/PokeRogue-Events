@@ -13,7 +13,7 @@ import { Moves } from "#enums/moves";
 import { PlayerGender } from "#enums/player-gender";
 import { Species } from "#enums/species";
 import { TrainerType } from "#enums/trainer-type";
-import i18next from "#app/plugins/i18n";
+//import i18next from "#app/plugins/i18n";
 import MysteryEncounter, { MysteryEncounterVariant } from "./data/mystery-encounters/mystery-encounter";
 
 export enum BattleType {
@@ -177,9 +177,10 @@ export default class Battle {
 
     scene.addMoney(moneyAmount.value);
 
-    const userLocale = navigator.language || "en-US";
-    const formattedMoneyAmount = moneyAmount.value.toLocaleString(userLocale);
-    const message = i18next.t("battle:moneyPickedUp", { moneyAmount: formattedMoneyAmount });
+    //const userLocale = navigator.language || "en-US";
+    //const formattedMoneyAmount = moneyAmount.value.toLocaleString(userLocale);
+    //const message = i18next.t("battle:moneyPickedUp", { moneyAmount: formattedMoneyAmount });
+    const message = this.scene.getFormattedMoneyString(moneyAmount.value);
     scene.queueMessage(message, null, true);
 
     scene.currentBattle.moneyScattered = 0;

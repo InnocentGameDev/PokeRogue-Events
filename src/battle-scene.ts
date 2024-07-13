@@ -69,7 +69,7 @@ import { TimedEventManager } from "#app/timed-event-manager.js";
 import i18next from "i18next";
 import MysteryEncounter, { MysteryEncounterTier, MysteryEncounterVariant } from "./data/mystery-encounters/mystery-encounter";
 import { mysteryEncountersByBiome, allMysteryEncounters, BASE_MYSTERY_ENCOUNTER_SPAWN_WEIGHT, AVERAGE_ENCOUNTERS_PER_RUN_TARGET, WIGHT_INCREMENT_ON_SPAWN_MISS } from "./data/mystery-encounters/mystery-encounters";
-import { MysteryEncounterData } from "#app/data/mystery-encounters/mystery-encounter-data";
+import { MysteryEncounterData, MysteryEncounterAuras, getAuraName, AuraType } from "#app/data/mystery-encounters/mystery-encounter-data";
 import { MysteryEncounterType } from "#enums/mystery-encounter-type";
 
 export const bypassLogin = import.meta.env.VITE_BYPASS_LOGIN === "1";
@@ -216,6 +216,7 @@ export default class BattleScene extends SceneBase {
   public pokemonInfoContainer: PokemonInfoContainer;
   private party: PlayerPokemon[];
   public mysteryEncounterData: MysteryEncounterData = new MysteryEncounterData(null);
+  public mysteryEncounterAuras: MysteryEncounterAuras = new MysteryEncounterAuras();
   public lastMysteryEncounter: MysteryEncounter;
   /** Combined Biome and Wave count text */
   private biomeWaveText: Phaser.GameObjects.Text;
@@ -2150,10 +2151,21 @@ export default class BattleScene extends SceneBase {
   }
 
   addMoney(amount: integer): void {
-    this.money = Math.min(this.money + amount, Number.MAX_SAFE_INTEGER);
+    const mysteryMoneyAura = this.mysteryEncounterAuras.FindAura(getAuraName(AuraType.MONEY));
+    const mysteryMoneyMult = 1 + (mysteryMoneyAura.length > 0 ? mysteryMoneyAura[0].auraStrength : 0);
+    this.money = Math.min(this.money + Math.floor(amount * mysteryMoneyMult), Number.MAX_SAFE_INTEGER);
     this.updateMoneyText();
     this.animateMoneyChanged(true);
     this.validateAchvs(MoneyAchv);
+  }
+
+  getFormattedMoneyString(moneyAmount: number): string {
+    const userLocale = navigator.language || "en-US";
+    const mysteryMoneyAura = this.mysteryEncounterAuras.FindAura(getAuraName(AuraType.MONEY));
+    const mysteryMoneyMult = 1 + (mysteryMoneyAura.length > 0 ? mysteryMoneyAura[0].auraStrength : 0);
+    const formattedMoneyAmount = (moneyAmount.value * mysteryMoneyMult).toLocaleString(userLocale);
+    const message = i18next.t("battle:moneyWon", { moneyAmount: formattedMoneyAmount });
+    return message;
   }
 
   getWaveMoneyAmount(moneyMultiplier: number): integer {
