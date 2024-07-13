@@ -8,7 +8,7 @@ import { TrainerConfig, trainerConfigs, TrainerSlot } from "../trainer-config";
 import Pokemon, { FieldPosition, PlayerPokemon } from "#app/field/pokemon";
 import Trainer, { TrainerVariant } from "../../field/trainer";
 import { ExpBalanceModifier, ExpShareModifier, MultipleParticipantExpBonusModifier, PokemonExpBoosterModifier } from "#app/modifier/modifier";
-import { CustomModifierSettings, getModifierPoolForType, ModifierPoolType, ModifierType, ModifierTypeFunc, ModifierTypeGenerator, modifierTypes, PokemonHeldItemModifierType, regenerateModifierPoolThresholds } from "#app/modifier/modifier-type";
+import { CustomModifierSettings, getModifierPoolForType, ModifierPoolType, ModifierType, ModifierTypeFunc, ModifierTypeGenerator, ModifierTypeOption, modifierTypes, PokemonHeldItemModifierType, regenerateModifierPoolThresholds } from "#app/modifier/modifier-type";
 import { BattleEndPhase, EggLapsePhase, ExpPhase, ModifierRewardPhase, SelectModifierPhase, ShowPartyExpBarPhase, TrainerVictoryPhase } from "#app/phases";
 import { MysteryEncounterBattlePhase, MysteryEncounterRewardsPhase } from "#app/phases/mystery-encounter-phase";
 import * as Utils from "../../utils";
@@ -158,12 +158,14 @@ export function koPlayerPokemon(pokemon: PlayerPokemon) {
   pokemon.updateInfo();
 }
 
-export function getEncounterText(scene: BattleScene, textKey: TemplateStringsArray | `mysteryEncounter:${string}`, primaryStyle?: TextStyle, uiTheme: UiTheme = UiTheme.DEFAULT): string {
+export function getEncounterText(scene: BattleScene, textKey: string, primaryStyle?: TextStyle, uiTheme: UiTheme = UiTheme.DEFAULT): string {
   if (isNullOrUndefined(textKey)) {
     return null;
   }
 
-  let textString: string = getTextWithDialogueTokens(scene, textKey);
+  const stringArray = [`${textKey}`] as any;
+  stringArray.raw = [`${textKey}`];
+  let textString: string = getTextWithDialogueTokens(scene, stringArray);
 
   // Can only color the text if a Primary Style is defined
   // primaryStyle is applied to all text that does not have its own specified style
@@ -174,22 +176,12 @@ export function getEncounterText(scene: BattleScene, textKey: TemplateStringsArr
   return textString;
 }
 
-function getTextWithDialogueTokens(scene: BattleScene, textKey: TemplateStringsArray | `mysteryEncounter:${string}`): string {
+function getTextWithDialogueTokens(scene: BattleScene, textKey: TemplateStringsArray): string {
   if (isNullOrUndefined(textKey)) {
     return null;
   }
 
-  let textString: string = i18next.t(textKey);
-
-  // Apply dialogue tokens
-  const dialogueTokens = scene.currentBattle?.mysteryEncounter?.dialogueTokens;
-  if (dialogueTokens) {
-    dialogueTokens.forEach((value) => {
-      textString = textString.replace(value[0], value[1]);
-    });
-  }
-
-  return textString;
+  return i18next.t(textKey, scene.currentBattle?.mysteryEncounter?.dialogueTokens);
 }
 
 /**
@@ -197,7 +189,7 @@ function getTextWithDialogueTokens(scene: BattleScene, textKey: TemplateStringsA
  * @param scene
  * @param contentKey
  */
-export function queueEncounterMessage(scene: BattleScene, contentKey: TemplateStringsArray | `mysteryEncounter:${string}`): void {
+export function queueEncounterMessage(scene: BattleScene, contentKey: string): void {
   const text: string = getEncounterText(scene, contentKey);
   scene.queueMessage(text, null, true);
 }
@@ -207,7 +199,7 @@ export function queueEncounterMessage(scene: BattleScene, contentKey: TemplateSt
  * @param scene
  * @param contentKey
  */
-export function showEncounterText(scene: BattleScene, contentKey: TemplateStringsArray | `mysteryEncounter:${string}`): Promise<void> {
+export function showEncounterText(scene: BattleScene, contentKey: string): Promise<void> {
   return new Promise<void>(resolve => {
     const text: string = getEncounterText(scene, contentKey);
     scene.ui.showText(text, null, () => resolve(), 0, true);
@@ -221,7 +213,7 @@ export function showEncounterText(scene: BattleScene, contentKey: TemplateString
  * @param speakerContentKey
  * @param callback
  */
-export function showEncounterDialogue(scene: BattleScene, textContentKey: TemplateStringsArray | `mysteryEncounter:${string}`, speakerContentKey: TemplateStringsArray | `mysteryEncounter:${string}`, callback?: Function) {
+export function showEncounterDialogue(scene: BattleScene, textContentKey: string, speakerContentKey: string, callback?: Function) {
   const text: string = getEncounterText(scene, textContentKey);
   const speaker: string = getEncounterText(scene, speakerContentKey);
   scene.ui.showDialogue(text, speaker, null, callback, 0, 0);
@@ -443,7 +435,7 @@ export function updatePlayerMoney(scene: BattleScene, changeValue: number, playS
  * @param modifier
  * @param pregenArgs - can specify BerryType for berries, TM for TMs, AttackBoostType for item, etc.
  */
-export function generateModifierType(scene: BattleScene, modifier: () => ModifierType, pregenArgs?: any[]): ModifierType {
+export function generateModifierTypeOption(scene: BattleScene, modifier: () => ModifierType, pregenArgs?: any[]): ModifierTypeOption {
   const modifierId = Object.keys(modifierTypes).find(k => modifierTypes[k] === modifier);
   let result: ModifierType = modifierTypes[modifierId]?.();
 
@@ -463,7 +455,7 @@ export function generateModifierType(scene: BattleScene, modifier: () => Modifie
   });
 
   result = result instanceof ModifierTypeGenerator ? result.generateType(scene.getParty(), pregenArgs) : result;
-  return result;
+  return new ModifierTypeOption(result, 0);
 }
 
 /**
@@ -593,6 +585,7 @@ export function setEncounterRewards(scene: BattleScene, customShopRewards?: Cust
  * 290 - trio legendaries
  * 340 - box legendaries
  * 608 - Blissey (highest in game)
+ * https://bulbapedia.bulbagarden.net/wiki/List_of_Pok%C3%A9mon_by_effort_value_yield_(Generation_IX)
  * @param useWaveIndex - set to false when directly passing the the full exp value instead of baseExpValue
  */
 export function setEncounterExp(scene: BattleScene, participantIds: integer[], baseExpValue: number, useWaveIndex: boolean = true) {

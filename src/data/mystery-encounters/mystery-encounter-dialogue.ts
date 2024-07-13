@@ -1,40 +1,31 @@
-import { MysteryEncounterType } from "#enums/mystery-encounter-type";
-import { MysteriousChallengersDialogue } from "#app/data/mystery-encounters/dialogue/mysterious-challengers-dialogue";
-import { MysteriousChestDialogue } from "#app/data/mystery-encounters/dialogue/mysterious-chest-dialogue";
-import { DarkDealDialogue } from "#app/data/mystery-encounters/dialogue/dark-deal-dialogue";
-import { FightOrFlightDialogue } from "#app/data/mystery-encounters/dialogue/fight-or-flight-dialogue";
-import { TrainingSessionDialogue } from "#app/data/mystery-encounters/dialogue/training-session-dialogue";
-import { SleepingSnorlaxDialogue } from "./dialogue/sleeping-snorlax-dialogue";
-import { DepartmentStoreSaleDialogue } from "#app/data/mystery-encounters/dialogue/department-store-sale-dialogue";
-import { ShadyVitaminDealerDialogue } from "#app/data/mystery-encounters/dialogue/shady-vitamin-dealer";
-import { ChoiceOfBalanceDialogue } from "#app/data/mystery-encounters/dialogue/choice-of-balance-dialogue";
 import { TextStyle } from "#app/ui/text";
 
 export class TextDisplay {
-  speaker?: TemplateStringsArray | `mysteryEncounter:${string}`;
-  text: TemplateStringsArray | `mysteryEncounter:${string}`;
+  speaker?: string;
+  text: string;
   style?: TextStyle;
 }
 
 export class OptionTextDisplay {
-  buttonLabel: TemplateStringsArray | `mysteryEncounter:${string}`;
-  buttonTooltip?: TemplateStringsArray | `mysteryEncounter:${string}`;
-  disabledTooltip?: TemplateStringsArray | `mysteryEncounter:${string}`;
-  secondOptionPrompt?: TemplateStringsArray | `mysteryEncounter:${string}`;
+  buttonLabel: string;
+  buttonTooltip?: string;
+  disabledButtonLabel?: string;
+  disabledButtonTooltip?: string;
+  secondOptionPrompt?: string;
   selected?: TextDisplay[];
   style?: TextStyle;
 }
 
 export class EncounterOptionsDialogue {
-  title: TemplateStringsArray | `mysteryEncounter:${string}`;
-  description: TemplateStringsArray | `mysteryEncounter:${string}`;
-  query?: TemplateStringsArray | `mysteryEncounter:${string}`;
-  options: [OptionTextDisplay, OptionTextDisplay, ...OptionTextDisplay[]]; // Options array with minimum 2 options
+  title?: string;
+  description?: string;
+  query?: string;
+  options?: [...OptionTextDisplay[]]; // Options array with minimum 2 options
 }
 
 export default class MysteryEncounterDialogue {
   intro?: TextDisplay[];
-  encounterOptionsDialogue: EncounterOptionsDialogue;
+  encounterOptionsDialogue?: EncounterOptionsDialogue;
   outro?: TextDisplay[];
 }
 
@@ -81,17 +72,3 @@ export default class MysteryEncounterDialogue {
  }
  *
  */
-
-export const allMysteryEncounterDialogue: { [encounterType: number]: MysteryEncounterDialogue } = {};
-
-export function initMysteryEncounterDialogue() {
-  allMysteryEncounterDialogue[MysteryEncounterType.MYSTERIOUS_CHALLENGERS] = MysteriousChallengersDialogue;
-  allMysteryEncounterDialogue[MysteryEncounterType.MYSTERIOUS_CHEST] = MysteriousChestDialogue;
-  allMysteryEncounterDialogue[MysteryEncounterType.DARK_DEAL] = DarkDealDialogue;
-  allMysteryEncounterDialogue[MysteryEncounterType.FIGHT_OR_FLIGHT] = FightOrFlightDialogue;
-  allMysteryEncounterDialogue[MysteryEncounterType.TRAINING_SESSION] = TrainingSessionDialogue;
-  allMysteryEncounterDialogue[MysteryEncounterType.SLEEPING_SNORLAX] = SleepingSnorlaxDialogue;
-  allMysteryEncounterDialogue[MysteryEncounterType.DEPARTMENT_STORE_SALE] = DepartmentStoreSaleDialogue;
-  allMysteryEncounterDialogue[MysteryEncounterType.SHADY_VITAMIN_DEALER] = ShadyVitaminDealerDialogue;
-  allMysteryEncounterDialogue[MysteryEncounterType.CHOICE_OF_BALANCE] = ChoiceOfBalanceDialogue;
-}
