@@ -39,7 +39,7 @@ export const mysteryEncounter: SimpleTranslationEntries = {
   "choice_of_balance_intro_message": `You feel a strange pull in a certain direction.
   $Heading towards it, you see a weird glow in the distance.
   $It's an...@d{64} Inkay?! You accidentally make\nsome noise and scare it off...
-  $...but not before it inks you with a psychic shot!`,
+  $...but not before dazzling you with its flashing spots!`,
   "choice_of_balance_title": "The Choice of Balance",
   "choice_of_balance_description": "You've been inked by inkay and feel a little woozy. You can't really tell what's good and what's not?",
   "choice_of_balance_query": "What will you choose?",
@@ -61,11 +61,12 @@ export const mysteryEncounter: SimpleTranslationEntries = {
   "choice_of_balance_positive_enemy_stats": "Reduce enemy STAT by",
   "choice_of_balance_positive_pp_chance": "Reduce PP usage chance",
   "choice_of_balance_positive_instant_money": "Gain money",
-  "choice_of_balance_positive_instant_candy": "Gain candy",
+  "choice_of_balance_positive_instant_candy": "Gain a rarer candy",
   "choice_of_balance_then": "THEN:",
   "choice_of_balance_for": "for",
   "choice_of_balance_waves": "waves",
   "choice_of_balance_rest_of_run": "for the rest of this run",
+  "choice_of_balance_instantly": "instantly",
   //"choice_of_balance_option_2_selected_message": "You hurry along your way,\nwith a slight feeling of regret.",
   //"choice_of_balance_option_1_normal_result": "Just some normal tools and items.",
   //"choice_of_balance_option_1_good_result": "Some pretty nice tools and items.",

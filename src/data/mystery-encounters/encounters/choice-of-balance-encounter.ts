@@ -6,10 +6,12 @@ import {
   setEncounterRewards,
   showEncounterText,
 } from "#app/data/mystery-encounters/mystery-encounter-utils";
+import { mysteryEncounter } from "#app/locales/en/mystery-encounter";
 import { ModifierTier } from "#app/modifier/modifier-tier";
 import { GameOverPhase } from "#app/phases";
 import { randSeedInt } from "#app/utils";
 import { MysteryEncounterType } from "#enums/mystery-encounter-type";
+import i18next from "i18next";
 import BattleScene from "../../../battle-scene";
 import IMysteryEncounter, {
   MysteryEncounterBuilder,
@@ -19,6 +21,23 @@ import { EncounterOptionMode, MysteryEncounterOptionBuilder } from "../mystery-e
 //import { AuraType, getAuraName } from "#app/data/mystery-encounters/mystery-encounter-data";
 
 const namespace = "mysteryEncounter:choice_of_balance";
+const options = 2 + randSeedInt(1);
+
+function generateRewards(numOptions: number): number[] {
+  const negativeRewards = getNegativeRewards(numOptions);
+  const positiveRewards = getPositiveRewards(numOptions);
+  const rewardArray = [];
+  for (let i = 0; i < negativeRewards.length; i++) {
+    rewardArray.push(new RewardOption(negativeRewards[i], positiveRewards[i]));
+  }
+  mysteryEncounter["choice_of_balance_option_1_tooltip"] = rewardArray[0].generateMessage(); // this will need changing eventually; this is NOT a good way to do it
+  mysteryEncounter["choice_of_balance_option_2_tooltip"] = rewardArray[1].generateMessage(); // this will need changing eventually; this is NOT a good way to do it
+  //const test = rewardArray[0];
+  //console.log(test.generateMessage());
+  //console.log(negativeRewards);
+  //console.log(positiveRewards);
+  return rewardArray;
+}
 
 export const ChoiceOfBalanceEncounter: IMysteryEncounter = MysteryEncounterBuilder
   .withEncounterType(MysteryEncounterType.CHOICE_OF_BALANCE)
@@ -41,9 +60,21 @@ export const ChoiceOfBalanceEncounter: IMysteryEncounter = MysteryEncounterBuild
       text: `${namespace}_intro_message`,
     }
   ])
+  .withOnInit((scene: BattleScene) => {
+    const encounter = scene.currentBattle.mysteryEncounter;
+    encounter.misc = [];
+    console.log(encounter);
+
+    console.log("Number of options generated", options);
+
+    const rewardsArray = generateRewards(options);
+    encounter.misc.push(rewardsArray);
+    return true;
+  })
   .withTitle(`${namespace}_title`)
   .withDescription(`${ namespace }_description`)
   .withQuery(`${namespace}_query`)
+  .withExtraInfo(options === 3)
   .withOption(
     new MysteryEncounterOptionBuilder()
       .withOptionMode(EncounterOptionMode.DEFAULT)
@@ -59,10 +90,16 @@ export const ChoiceOfBalanceEncounter: IMysteryEncounter = MysteryEncounterBuild
       .withOptionPhase(async (scene: BattleScene) => {
       // Open the chest
         let roll = randSeedInt(100);
-        const negativeRewards = getNegativeRewards(2);
-        const positiveRewards = getPositiveRewards(2);
-        console.log(negativeRewards);
-        console.log(positiveRewards);
+        //const negativeRewards = getNegativeRewards(numOptions);
+        //const positiveRewards = getPositiveRewards(numOptions);
+        //let rewardArray = [];
+        //for (var i = 0; i < negativeRewards.length; i++) {
+        //  rewardArray.push(new RewardOption(negativeRewards[i], positiveRewards[i]));
+        //}
+        //const test = rewardArray[0];
+        //console.log(test.generateMessage());
+        //console.log(negativeRewards);
+        //console.log(positiveRewards);
         roll = 100;
         if (roll > 60) {
         // Choose between 2 COMMON / 2 GREAT tier items (40%)
@@ -125,6 +162,21 @@ export const ChoiceOfBalanceEncounter: IMysteryEncounter = MysteryEncounterBuild
       leaveEncounterWithoutBattle(scene, true);
       return true;
     })
+  .withSimpleOption(
+    {
+      buttonLabel: `${namespace}_option_2_label`,
+      buttonTooltip: `${namespace}_option_2_tooltip`,
+      selected: [
+        {
+          text: `${namespace}_option_2_selected_message`,
+        },
+      ],
+    },
+    async (scene: BattleScene) => {
+      // Leave encounter with no rewards or exp
+      leaveEncounterWithoutBattle(scene, true);
+      return true;
+    })
   .build();
 
 export enum NegativeRewards {
@@ -153,7 +205,7 @@ export function getNegativeRewards(totalOptions: number): number[] {
   while (negativeOptions.length < totalOptions) {
     const roll = randSeedInt(numNegatives.length);
     if (!negativeOptions.includes(roll)) {
-      negativeOptions.push(NegativeRewards[roll]);
+      negativeOptions.push(roll);
     }
   }
   return negativeOptions;
@@ -164,8 +216,8 @@ export function getPositiveRewards(totalOptions: number): number[] {
   const numPositives = Object.values(PositiveRewards).filter(pr => !isNaN(Number(pr)));
   while (positiveOptions.length < totalOptions) {
     const roll = randSeedInt(numPositives.length);
-    if (!positiveOptions.includes(roll)) {
-      positiveOptions.push(PositiveRewards[numPositives[roll]]);
+    if (!positiveOptions.includes(numPositives[roll])) {
+      positiveOptions.push(numPositives[roll]);
     }
   }
   return positiveOptions;
@@ -181,13 +233,31 @@ export class RewardOption {
   }
 
   generateMessage(): string {
-    const negativeInfo = this.getRewardInfo(this.negativeOption);
-    //const positiveInfo = this.getRewardInfo(this.positiveOption);
-    let outputMessage = this.descriptorText(negativeInfo[1]);
-    console.log(this.formattedStrengths(NegativeRewards.ADD_POKEMON));
-    outputMessage += this.descriptorText("for");
-    outputMessage = negativeInfo[1];
-    return outputMessage;
+    const [negativeType, negativeText, negativeStrength, negativeDuration] = this.getRewardInfo(this.negativeOption);
+    const [positiveType, positiveText, positiveStrength, positiveDuration] = this.getRewardInfo(this.positiveOption);
+    const outputMessage: string[] = [];
+    outputMessage.push(this.getDescriptorText(negativeText));
+    if (this.formattedStrengths(negativeType, negativeStrength) !== "") {
+      outputMessage.push(this.formattedStrengths(negativeType, negativeStrength));
+    }
+    outputMessage.push(this.getDescriptorText("for"));
+    outputMessage.push(this.formattedWaves(negativeDuration));
+    outputMessage.push(this.getDescriptorText("then"));
+    outputMessage.push(this.getDescriptorText(positiveText));
+    if (this.formattedStrengths(positiveType, positiveStrength) !== "") {
+      outputMessage.push(this.formattedStrengths(positiveType, positiveStrength));
+    }
+    if (positiveDuration !== 0) {
+      outputMessage.push(this.getDescriptorText("for"));
+    }
+    outputMessage.push(this.formattedWaves(positiveDuration));
+
+    //outputMessage = outputMessage.filter()
+
+    //console.log(this.formattedStrengths(NegativeRewards.ADD_POKEMON));
+    //outputMessage += this.getDescriptorText("for");
+    //outputMessage = negativeInfo[1];
+    return outputMessage.join(" ");
 
   }
 
@@ -198,14 +268,17 @@ export class RewardOption {
     //}
   }
 
-  private formattedStrengths(strength: number): string {
+  private formattedStrengths(type: number, strength: number): string {
     let newStrength: string;
-    switch (strength) {
+    switch (type) {
+    // These are for percentages
     case NegativeRewards.INCOME:
     case NegativeRewards.DAMAGE_TO_PLAYER:
     case PositiveRewards.INCOME:
     case PositiveRewards.PP:
-      newStrength = String(Math.abs(strength * 100));
+      newStrength = String(Math.abs(strength * 100)) + "%";
+      break;
+      // These are for single numbers (i.e. stat stage increase/decrease, luck increase/decrease etc)
     case NegativeRewards.LUCK:
     case NegativeRewards.PLAYER_STATS:
     case NegativeRewards.ENEMY_STATS:
@@ -214,31 +287,55 @@ export class RewardOption {
     case PositiveRewards.ENEMY_STATS:
     case NegativeRewards.PLAYER_STATS:
       newStrength = String(Math.abs(strength));
+      break;
+      // These are for exceptions that don't have a strength
     case NegativeRewards.ADD_POKEMON:
     case NegativeRewards.NO_REROLL:
+    case PositiveRewards.INSTANT_CANDY:
       newStrength = "";
+      break;
+      // These are for money rewards
+    case PositiveRewards.INSTANT_MONEY:
+      newStrength = "$" + String(strength);
+      break;
+    default:
+      console.log("Missing formattedStrengths!!!");
+      newStrength = "Missing formattedStrengths";
+      break;
     }
     return newStrength;
   }
 
-  private descriptorText(text: string) {
-    return "mysteryEncounter:choice_of_balance_" + text;
+  private formattedWaves(duration: number): string {
+    let waveDuration: string;
+    if (duration < 0) {
+      waveDuration = this.getDescriptorText("rest_of_run");
+    } else if (duration === 0) {
+      waveDuration = this.getDescriptorText("instantly");
+    } else if (duration > 0) {
+      waveDuration = String(duration) + " " + this.getDescriptorText("waves");
+    }
+    return waveDuration;
+  }
+
+  private getDescriptorText(text: string) {
+    return i18next.t(namespace + "_" + text);
   }
 }
 
 const statMessageIndex: [index: number, dialogueName: string, auraStrength: number, auraDuration: number][] = [
-  [NegativeRewards.INCOME, "choice_of_balance_negative_income", -0.4, 5],
-  [NegativeRewards.LUCK, "choice_of_balance_negative_luck", 0, 15],
-  [NegativeRewards.PLAYER_STATS, "choice_of_balance_negative_player_stats", -1, 10],
-  [NegativeRewards.ENEMY_STATS, "choice_of_balance_negative_enemy_stats", 1, 8],
-  [NegativeRewards.ADD_POKEMON, "choice_of_balance_negative_add_pokemon", 0, 15],
-  [NegativeRewards.DAMAGE_TO_PLAYER, "choice_of_balance_negative_damage_to_player", 0.1, 5],
-  [NegativeRewards.NO_REROLL, "choice_of_balance_negative_no_reroll", 0, 7],
-  [PositiveRewards.INCOME, "choice_of_balance_positive_income", 0.7, -1],
-  [PositiveRewards.LUCK, "choice_of_balance_positive_luck", 5, -1],
-  [PositiveRewards.PLAYER_STATS, "choice_of_balance_positive_player_stats", 1, 13],
-  [PositiveRewards.ENEMY_STATS, "choice_of_balance_positive_enemy_stats", -1, 12],
-  [PositiveRewards.PP, "choice_of_balance_positive_pp_chance", 0.2, 40],
-  [PositiveRewards.INSTANT_MONEY, "choice_of_balance_positive_instant_money", 5000, 0],
-  [PositiveRewards.INSTANT_CANDY, "choice_of_balance_positive_instant_candy", 0, 0]
+  [NegativeRewards.INCOME, "negative_income", -0.4, 5],
+  [NegativeRewards.LUCK, "negative_luck", 0, 15],
+  [NegativeRewards.PLAYER_STATS, "negative_player_stats", -1, 10],
+  [NegativeRewards.ENEMY_STATS, "negative_enemy_stats", 1, 8],
+  [NegativeRewards.ADD_POKEMON, "negative_add_pokemon", 0, 15],
+  [NegativeRewards.DAMAGE_TO_PLAYER, "negative_damage_to_player", 0.1, 5],
+  [NegativeRewards.NO_REROLL, "negative_no_reroll", 0, 7],
+  [PositiveRewards.INCOME, "positive_income", 0.7, -1],
+  [PositiveRewards.LUCK, "positive_luck", 5, -1],
+  [PositiveRewards.PLAYER_STATS, "positive_player_stats", 1, 13],
+  [PositiveRewards.ENEMY_STATS, "positive_enemy_stats", -1, 12],
+  [PositiveRewards.PP, "positive_pp_chance", 0.2, 40],
+  [PositiveRewards.INSTANT_MONEY, "positive_instant_money", 5000, 0],
+  [PositiveRewards.INSTANT_CANDY, "positive_instant_candy", 0, 0]
 ];
