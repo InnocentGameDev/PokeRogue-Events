@@ -1,14 +1,15 @@
-import {
-  getHighestLevelPlayerPokemon,
-  koPlayerPokemon,
-  leaveEncounterWithoutBattle,
-  queueEncounterMessage,
-  setEncounterRewards,
-  showEncounterText,
-} from "#app/data/mystery-encounters/mystery-encounter-utils";
-import { mysteryEncounter } from "#app/locales/en/mystery-encounter";
-import { ModifierTier } from "#app/modifier/modifier-tier";
-import { GameOverPhase } from "#app/phases";
+//import {
+//  getHighestLevelPlayerPokemon,
+//  koPlayerPokemon,
+//  leaveEncounterWithoutBattle,
+//  queueEncounterMessage,
+//  setEncounterRewards,
+//  showEncounterText,
+//} from "#app/data/mystery-encounters/mystery-encounter-utils";
+import { leaveEncounterWithoutBattle } from "#app/data/mystery-encounters/mystery-encounter-utils";
+//import { mysteryEncounter } from "#app/locales/en/mystery-encounter";
+//import { ModifierTier } from "#app/modifier/modifier-tier";
+//import { GameOverPhase } from "#app/phases";
 import { randSeedInt } from "#app/utils";
 import { MysteryEncounterType } from "#enums/mystery-encounter-type";
 import i18next from "i18next";
@@ -18,24 +19,18 @@ import IMysteryEncounter, {
   MysteryEncounterTier,
 } from "../mystery-encounter";
 import { EncounterOptionMode, MysteryEncounterOptionBuilder } from "../mystery-encounter-option";
-//import { AuraType, getAuraName } from "#app/data/mystery-encounters/mystery-encounter-data";
+import { Aura, AuraType, getAuraName } from "#app/data/mystery-encounters/mystery-encounter-data";
 
 const namespace = "mysteryEncounter:choice_of_balance";
-const options = 2 + randSeedInt(1);
 
-function generateRewards(numOptions: number): number[] {
+function generateRewards(numOptions: number): RewardOption[] {
   const negativeRewards = getNegativeRewards(numOptions);
   const positiveRewards = getPositiveRewards(numOptions);
   const rewardArray = [];
   for (let i = 0; i < negativeRewards.length; i++) {
     rewardArray.push(new RewardOption(negativeRewards[i], positiveRewards[i]));
   }
-  mysteryEncounter["choice_of_balance_option_1_tooltip"] = rewardArray[0].generateMessage(); // this will need changing eventually; this is NOT a good way to do it
-  mysteryEncounter["choice_of_balance_option_2_tooltip"] = rewardArray[1].generateMessage(); // this will need changing eventually; this is NOT a good way to do it
-  //const test = rewardArray[0];
-  //console.log(test.generateMessage());
-  //console.log(negativeRewards);
-  //console.log(positiveRewards);
+
   return rewardArray;
 }
 
@@ -65,22 +60,49 @@ export const ChoiceOfBalanceEncounter: IMysteryEncounter = MysteryEncounterBuild
     encounter.misc = [];
     console.log(encounter);
 
-    console.log("Number of options generated", options);
+    const options = 2 + randSeedInt(2); // this makes a random number between 2 and 3 for the options
 
     const rewardsArray = generateRewards(options);
-    encounter.misc.push(rewardsArray);
+
+    for (let i = 0; i < rewardsArray.length; i++) {
+      rewardsArray[i].generateStats();
+      rewardsArray[i].generateAuras();
+      if (rewardsArray[i].negativeStat > 0) {
+        if (rewardsArray[i].negativeOption === NegativeRewards.ENEMY_STATS) {
+          encounter.setDialogueToken("negativeEnemySTAT", getAuraName(rewardsArray[i].negativeStat));
+        } else if (rewardsArray[i].negativeOption === NegativeRewards.PLAYER_STATS) {
+          encounter.setDialogueToken("negativePlayerSTAT", getAuraName(rewardsArray[i].negativeStat));
+        }
+      }
+      if (rewardsArray[i].positiveStat > 0) {
+        if (rewardsArray[i].positiveOption === PositiveRewards.ENEMY_STATS) {
+          encounter.setDialogueToken("positiveEnemySTAT", getAuraName(rewardsArray[i].positiveStat));
+        } else if (rewardsArray[i].positiveOption === PositiveRewards.PLAYER_STATS) {
+          encounter.setDialogueToken("positivePlayerSTAT", getAuraName(rewardsArray[i].positiveStat));
+        }
+      }
+      encounter.misc.push(rewardsArray[i]);
+    }
+
+    encounter.setDialogueToken("dynamic1", rewardsArray[0].generateMessage());
+    encounter.setDialogueToken("dynamic2", rewardsArray[1].generateMessage());
+    if (options === 3) {
+      encounter.setDialogueToken("dynamic3", rewardsArray[2].generateMessage());
+    } else if (options === 2 && encounter.options.length === 3) {
+      encounter.options.pop();
+    }
+
     return true;
   })
   .withTitle(`${namespace}_title`)
   .withDescription(`${ namespace }_description`)
   .withQuery(`${namespace}_query`)
-  .withExtraInfo(options === 3)
   .withOption(
     new MysteryEncounterOptionBuilder()
       .withOptionMode(EncounterOptionMode.DEFAULT)
       .withDialogue({
         buttonLabel: `${namespace}_option_1_label`,
-        buttonTooltip: `${ namespace }_option_1_tooltip`,
+        buttonTooltip: `${ namespace }_dynamic_option_1`,
         selected: [
           {
             text: `${namespace}_option_1_selected_message`,
@@ -88,69 +110,17 @@ export const ChoiceOfBalanceEncounter: IMysteryEncounter = MysteryEncounterBuild
         ],
       })
       .withOptionPhase(async (scene: BattleScene) => {
-      // Open the chest
-        let roll = randSeedInt(100);
-        //const negativeRewards = getNegativeRewards(numOptions);
-        //const positiveRewards = getPositiveRewards(numOptions);
-        //let rewardArray = [];
-        //for (var i = 0; i < negativeRewards.length; i++) {
-        //  rewardArray.push(new RewardOption(negativeRewards[i], positiveRewards[i]));
-        //}
-        //const test = rewardArray[0];
-        //console.log(test.generateMessage());
-        //console.log(negativeRewards);
-        //console.log(positiveRewards);
-        roll = 100;
-        if (roll > 60) {
-        // Choose between 2 COMMON / 2 GREAT tier items (40%)
-          setEncounterRewards(scene, { guaranteedModifierTiers: [ModifierTier.COMMON, ModifierTier.COMMON, ModifierTier.GREAT, ModifierTier.GREAT] });
-          // Display result message then proceed to rewards
-          queueEncounterMessage(scene, `${namespace}_option_1_normal_result`);
-          leaveEncounterWithoutBattle(scene);
-        } else if (roll > 40) {
-        // Choose between 3 ULTRA tier items (20%)
-          setEncounterRewards(scene, { guaranteedModifierTiers: [ModifierTier.ULTRA, ModifierTier.ULTRA, ModifierTier.ULTRA] });
-          // Display result message then proceed to rewards
-          queueEncounterMessage(scene, `${namespace}_option_1_good_result`);
-          leaveEncounterWithoutBattle(scene);
-        } else if (roll > 36) {
-        // Choose between 2 ROGUE tier items (4%)
-          setEncounterRewards(scene, { guaranteedModifierTiers: [ModifierTier.ROGUE, ModifierTier.ROGUE] });
-          // Display result message then proceed to rewards
-          queueEncounterMessage(scene, `${namespace}_option_1_great_result`);
-          leaveEncounterWithoutBattle(scene);
-        } else if (roll > 35) {
-        // Choose 1 MASTER tier item (1%)
-          setEncounterRewards(scene, { guaranteedModifierTiers: [ModifierTier.MASTER] });
-          // Display result message then proceed to rewards
-          queueEncounterMessage(scene, `${namespace}_option_1_amazing_result`);
-          leaveEncounterWithoutBattle(scene);
-        } else {
-        // Your highest level unfainted Pok�mon gets OHKO. Progress with no rewards (35%)
-          const highestLevelPokemon = getHighestLevelPlayerPokemon(scene, true);
-          koPlayerPokemon(highestLevelPokemon);
-
-          scene.currentBattle.mysteryEncounter.setDialogueToken("pokeName", highestLevelPokemon.name);
-          // Show which Pokemon was KOed, then leave encounter with no rewards
-          // Does this synchronously so that game over doesn't happen over result message
-          await showEncounterText(scene, `${namespace}_option_1_bad_result`)
-            .then(() => {
-              if (scene.getParty().filter(p => p.isAllowedInBattle()).length === 0) {
-              // All pokemon fainted, game over
-                scene.clearPhaseQueue();
-                scene.unshiftPhase(new GameOverPhase(scene));
-              } else {
-                leaveEncounterWithoutBattle(scene);
-              }
-            });
-        }
+        // Leave encounter with no rewards or exp
+        //[const negativeAura, const positiveAura]
+        leaveEncounterWithoutBattle(scene, true);
+        return true;
       })
       .build()
   )
   .withSimpleOption(
     {
       buttonLabel: `${namespace}_option_2_label`,
-      buttonTooltip: `${namespace}_option_2_tooltip`,
+      buttonTooltip: `${namespace}_dynamic_option_2`,
       selected: [
         {
           text: `${namespace}_option_2_selected_message`,
@@ -164,11 +134,11 @@ export const ChoiceOfBalanceEncounter: IMysteryEncounter = MysteryEncounterBuild
     })
   .withSimpleOption(
     {
-      buttonLabel: `${namespace}_option_2_label`,
-      buttonTooltip: `${namespace}_option_2_tooltip`,
+      buttonLabel: `${namespace}_option_3_label`,
+      buttonTooltip: `${namespace}_dynamic_option_3`,
       selected: [
         {
-          text: `${namespace}_option_2_selected_message`,
+          text: `${namespace}_option_3_selected_message`,
         },
       ],
     },
@@ -226,6 +196,10 @@ export function getPositiveRewards(totalOptions: number): number[] {
 export class RewardOption {
   public negativeOption: number;
   public positiveOption: number;
+  public negativeStat = -1;
+  public positiveStat = -1;
+  public negativeAura: Aura;
+  public positiveAura: Aura;
 
   constructor(negativeOption: number, positiveOption: number) {
     this.negativeOption = negativeOption;
@@ -251,14 +225,7 @@ export class RewardOption {
       outputMessage.push(this.getDescriptorText("for"));
     }
     outputMessage.push(this.formattedWaves(positiveDuration));
-
-    //outputMessage = outputMessage.filter()
-
-    //console.log(this.formattedStrengths(NegativeRewards.ADD_POKEMON));
-    //outputMessage += this.getDescriptorText("for");
-    //outputMessage = negativeInfo[1];
     return outputMessage.join(" ");
-
   }
 
   getRewardInfo(reward: number): [index: number, dialogueName: string, auraStrength: number, auraDuration: number] {
@@ -285,7 +252,6 @@ export class RewardOption {
     case PositiveRewards.LUCK:
     case PositiveRewards.PLAYER_STATS:
     case PositiveRewards.ENEMY_STATS:
-    case NegativeRewards.PLAYER_STATS:
       newStrength = String(Math.abs(strength));
       break;
       // These are for exceptions that don't have a strength
@@ -320,6 +286,54 @@ export class RewardOption {
 
   private getDescriptorText(text: string) {
     return i18next.t(namespace + "_" + text);
+  }
+
+  generateStats() {
+    const statArray = [AuraType.ATK, AuraType.SPATK, AuraType.DEF, AuraType.SPDEF, AuraType.SPD, AuraType.EVA, AuraType.ACC];
+    if (this.negativeStat < 0 && (this.negativeOption === NegativeRewards.ENEMY_STATS || this.negativeOption === NegativeRewards.PLAYER_STATS)) {
+      this.negativeStat = statArray[randSeedInt(statArray.length)];
+    }
+    if (this.positiveStat < 0 && (this.positiveOption === PositiveRewards.PLAYER_STATS || this.positiveOption === PositiveRewards.ENEMY_STATS)) {
+      this.positiveStat = statArray[randSeedInt(statArray.length)];
+    }
+  }
+
+  generateAuras() {
+    const [negativeType, negativeText, negativeStrength, negativeDuration] = this.getRewardInfo(this.negativeOption);
+    const [positiveType, positiveText, positiveStrength, positiveDuration] = this.getRewardInfo(this.positiveOption);
+    console.log(negativeText + ", " + positiveText);
+    this.negativeAura = new Aura([-1], negativeStrength, negativeDuration, getAuraName(this.convertRewardsToAura(negativeType)), 0, 0);
+    this.positiveAura = new Aura([-1], positiveStrength, positiveDuration, getAuraName(this.convertRewardsToAura(positiveType)), 0, negativeDuration);
+  }
+
+  convertRewardsToAura(reward: number): number {
+    const statArray = [AuraType.ATK, AuraType.SPATK, AuraType.DEF, AuraType.SPDEF, AuraType.SPD, AuraType.EVA, AuraType.ACC];
+    switch (reward) {
+    case NegativeRewards.INCOME:
+      return AuraType.INCOME;
+    case NegativeRewards.LUCK:
+      return AuraType.LUCK;
+    case NegativeRewards.PLAYER_STATS:
+    case NegativeRewards.ENEMY_STATS:
+      return statArray[this.negativeStat];
+    case NegativeRewards.ADD_POKEMON:
+    case NegativeRewards.DAMAGE_TO_PLAYER:
+    case NegativeRewards.NO_REROLL:
+      return -1;
+    case PositiveRewards.INCOME:
+      return AuraType.INCOME;
+    case PositiveRewards.LUCK:
+      return AuraType.LUCK;
+    case PositiveRewards.PLAYER_STATS:
+    case PositiveRewards.ENEMY_STATS:
+      return statArray[this.positiveStat];
+    case PositiveRewards.PP:
+      return -1;
+    case PositiveRewards.INSTANT_MONEY:
+      return AuraType.MONEY;
+    case PositiveRewards.INSTANT_CANDY:
+      return -1;
+    }
   }
 }
 

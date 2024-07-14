@@ -27,6 +27,7 @@ import { BattlerTagType } from "#enums/battler-tag-type";
 import { BerryType } from "#enums/berry-type";
 import { Moves } from "#enums/moves";
 import { Species } from "#enums/species";
+import { getAuraName, AuraType } from "#app/data/mystery-encounters/mystery-encounter-data";
 
 const outputModifierData = false;
 const useMaxWeightForOutput = false;
@@ -2088,8 +2089,17 @@ export class ModifierTypeOption {
 }
 
 export function getPartyLuckValue(party: Pokemon[]): integer {
+  const mysteryLuckAura = party[0].scene.mysteryEncounterAuras.FindAura(getAuraName(AuraType.LUCK));
+  let auraLuck = 0;
+  if (mysteryLuckAura.length > 0) {
+    const auraTotalLuck = party[0].scene.mysteryEncounterAuras.FindAuraTotals(getAuraName(AuraType.LUCK));
+    if (auraTotalLuck === 0.5) { /// this means that there are luck related auras, but the luck is forcibly being set to 0, so we need to return 0 here
+      return 0;
+    }
+    auraLuck += auraTotalLuck;
+  }
   const luck = Phaser.Math.Clamp(party.map(p => p.isFainted() ? 0 : p.getLuck())
-    .reduce((total: integer, value: integer) => total += value, 0), 0, 14);
+    .reduce((total: integer, value: integer) => total += value, 0) + auraLuck, 0, 14);
   return luck || 0;
 }
 

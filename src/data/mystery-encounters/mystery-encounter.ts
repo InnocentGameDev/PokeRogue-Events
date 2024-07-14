@@ -143,6 +143,7 @@ export default class IMysteryEncounter implements IMysteryEncounter {
     this.hideIntroVisuals = !isNullOrUndefined(this.hideIntroVisuals) ? this.hideIntroVisuals : true;
 
     // Reset any dirty flags or encounter data
+    this.options = [...this.options];
     this.lockEncounterRewardTiers = true;
     this.dialogueTokens = {};
     this.enemyPartyConfigs = [];
@@ -377,17 +378,13 @@ export class MysteryEncounterBuilder implements Partial<IMysteryEncounter> {
    * @param option - MysteryEncounterOption to add, can use MysteryEncounterOptionBuilder to create instance
    * @returns
    */
-  withOption(option: MysteryEncounterOption, hidden?: boolean): this & Pick<IMysteryEncounter, "options"> {
-    const hiddenOption = hidden || false;
+  withOption(option: MysteryEncounterOption): this & Pick<IMysteryEncounter, "options"> {
     if (this.options[0] === null) {
       return Object.assign(this, { options: [option, this.options[0]] });
     } else if (this.options[1] === null) {
       return Object.assign(this, { options: [this.options[0], option] });
     } else {
-      if (!hiddenOption) {
-        this.options.push(option);
-        //return Object.assign(this, { options: this.options });
-      }
+      this.options.push(option);
       return Object.assign(this, { options: this.options });
     }
   }
@@ -400,9 +397,8 @@ export class MysteryEncounterBuilder implements Partial<IMysteryEncounter> {
    * @param callback - {@linkcode OptionPhaseCallback}
    * @returns
    */
-  withSimpleOption(dialogue: OptionTextDisplay, callback: OptionPhaseCallback, hidden?: boolean) {
-    const hiddenOption = hidden || false;
-    return this.withOption(new MysteryEncounterOptionBuilder().withOptionMode(EncounterOptionMode.DEFAULT).withDialogue(dialogue).withOptionPhase(callback).build(), hiddenOption);
+  withSimpleOption(dialogue: OptionTextDisplay, callback: OptionPhaseCallback) {
+    return this.withOption(new MysteryEncounterOptionBuilder().withOptionMode(EncounterOptionMode.DEFAULT).withDialogue(dialogue).withOptionPhase(callback).build());
   }
 
   /**

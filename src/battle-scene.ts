@@ -2151,9 +2151,9 @@ export default class BattleScene extends SceneBase {
   }
 
   addMoney(amount: integer): void {
-    const mysteryMoneyAura = this.mysteryEncounterAuras.FindAura(getAuraName(AuraType.MONEY));
-    const mysteryMoneyMult = 1 + (mysteryMoneyAura.length > 0 ? mysteryMoneyAura[0].auraStrength : 0);
-    this.money = Math.min(this.money + Math.floor(amount * mysteryMoneyMult), Number.MAX_SAFE_INTEGER);
+    const mysteryIncomeAura = this.mysteryEncounterAuras.FindAura(getAuraName(AuraType.INCOME));
+    const mysteryIncomeMult = 1 + (mysteryIncomeAura.length > 0 ? this.mysteryEncounterAuras.FindAuraTotals(getAuraName(AuraType.INCOME)) : 0);
+    this.money = Math.min(this.money + Math.floor(amount * mysteryIncomeMult), Number.MAX_SAFE_INTEGER);
     this.updateMoneyText();
     this.animateMoneyChanged(true);
     this.validateAchvs(MoneyAchv);
@@ -2161,9 +2161,9 @@ export default class BattleScene extends SceneBase {
 
   getFormattedMoneyString(moneyAmount: number): string {
     const userLocale = navigator.language || "en-US";
-    const mysteryMoneyAura = this.mysteryEncounterAuras.FindAura(getAuraName(AuraType.MONEY));
-    const mysteryMoneyMult = 1 + (mysteryMoneyAura.length > 0 ? mysteryMoneyAura[0].auraStrength : 0);
-    const formattedMoneyAmount = (moneyAmount.value * mysteryMoneyMult).toLocaleString(userLocale);
+    const mysteryIncomeAura = this.mysteryEncounterAuras.FindAura(getAuraName(AuraType.INCOME));
+    const mysteryIncomeMult = 1 + (mysteryIncomeAura.length > 0 ? this.mysteryEncounterAuras.FindAuraTotals(getAuraName(AuraType.INCOME)) : 0);
+    const formattedMoneyAmount = (moneyAmount * mysteryIncomeMult).toLocaleString(userLocale);
     const message = i18next.t("battle:moneyWon", { moneyAmount: formattedMoneyAmount });
     return message;
   }
