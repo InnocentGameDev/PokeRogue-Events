@@ -33,7 +33,7 @@ export class MysteryEncounterAuras {
         this.playerAura[i].timeUntilActive -= 1;
       } else {
         if (this.playerAura[i].duration > 0) {
-          this.playerAura[i].duration -= 1;
+          this.playerAura[i].duration -= 1; // may need to add a thing here so that if the aura is an instant aura to make it activate instead of dropping off straight away
         }
       }
     }
@@ -96,7 +96,9 @@ export enum AuraType {
   EVA,
   ACC,
   LUCK,
-  XP
+  XP,
+  CANDY,
+  PP
 }
 
 export function getAuraName(aura: AuraType) {
@@ -123,6 +125,10 @@ export function getAuraName(aura: AuraType) {
     return "LUCK";
   case AuraType.XP:
     return "EXP";
+  case AuraType.CANDY:
+    return "CANDY";
+  case AuraType.PP:
+    return "PP";
   default:
     return "???";
   }

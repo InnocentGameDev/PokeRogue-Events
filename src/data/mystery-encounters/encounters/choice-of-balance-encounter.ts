@@ -328,11 +328,11 @@ export class RewardOption {
     case PositiveRewards.ENEMY_STATS:
       return statArray[this.positiveStat];
     case PositiveRewards.PP:
-      return -1;
+      return AuraType.PP;
     case PositiveRewards.INSTANT_MONEY:
       return AuraType.MONEY;
     case PositiveRewards.INSTANT_CANDY:
-      return -1;
+      return AuraType.CANDY;
     }
   }
 }
