@@ -27,7 +27,7 @@ import { BattlerTagType } from "#enums/battler-tag-type";
 import { BerryType } from "#enums/berry-type";
 import { Moves } from "#enums/moves";
 import { Species } from "#enums/species";
-import { getAuraName, AuraType } from "#app/data/mystery-encounters/mystery-encounter-data";
+import { AuraType } from "#app/data/mystery-encounters/mystery-encounter-data";
 
 const outputModifierData = false;
 const useMaxWeightForOutput = false;
@@ -2089,10 +2089,10 @@ export class ModifierTypeOption {
 }
 
 export function getPartyLuckValue(party: Pokemon[]): integer {
-  const mysteryLuckAura = party[0].scene.mysteryEncounterAuras.FindAura(getAuraName(AuraType.LUCK));
+  const mysteryLuckAura = party[0].scene.mysteryEncounterAuras.FindAura(AuraType.LUCK);
   let auraLuck = 0;
   if (mysteryLuckAura.length > 0) {
-    const auraTotalLuck = party[0].scene.mysteryEncounterAuras.FindAuraTotals(getAuraName(AuraType.LUCK));
+    const auraTotalLuck = party[0].scene.mysteryEncounterAuras.FindAuraTotals(AuraType.LUCK);
     if (auraTotalLuck === 0.5) { /// this means that there are luck related auras, but the luck is forcibly being set to 0, so we need to return 0 here
       return 0;
     }

@@ -302,8 +302,8 @@ export class RewardOption {
     const [negativeType, negativeText, negativeStrength, negativeDuration] = this.getRewardInfo(this.negativeOption);
     const [positiveType, positiveText, positiveStrength, positiveDuration] = this.getRewardInfo(this.positiveOption);
     console.log(negativeText + ", " + positiveText);
-    this.negativeAura = new Aura([-1], negativeStrength, negativeDuration, getAuraName(this.convertRewardsToAura(negativeType)), 0, 0);
-    this.positiveAura = new Aura([-1], positiveStrength, positiveDuration, getAuraName(this.convertRewardsToAura(positiveType)), 0, negativeDuration);
+    this.negativeAura = new Aura([-1], negativeStrength, negativeDuration, this.convertRewardsToAura(negativeType), 0, 0);
+    this.positiveAura = new Aura([-1], positiveStrength, positiveDuration, this.convertRewardsToAura(positiveType), 0, negativeDuration);
   }
 
   convertRewardsToAura(reward: number): number {

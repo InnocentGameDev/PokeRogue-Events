@@ -975,6 +975,13 @@ export class EncounterPhase extends BattlePhase {
     }
 
     const enemyField = this.scene.getEnemyField();
+    const playerField = this.scene.getPlayerField();
+    for (const i = 0; i < enemyField.length; i++) {
+      this.scene.mysteryEncounterAuras.UpdateStats(enemyField[i]);
+    }
+    for (const i = 0; i < playerField.length; i++) {
+      this.scene.mysteryEncounterAuras.UpdateStats(playerField[i]);
+    }
     this.scene.tweens.add({
       targets: [this.scene.arenaEnemy, this.scene.currentBattle.trainer, enemyField, this.scene.currentBattle?.mysteryEncounter?.introVisuals, this.scene.arenaPlayer, this.scene.trainer].flat(),
       x: (_target, _key, value, fieldIndex: integer) => fieldIndex < 3 + (enemyField.length) ? value + 300 : value - 300,

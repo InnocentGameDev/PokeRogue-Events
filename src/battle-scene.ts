@@ -69,7 +69,7 @@ import { TimedEventManager } from "#app/timed-event-manager.js";
 import i18next from "i18next";
 import IMysteryEncounter, { MysteryEncounterTier, MysteryEncounterVariant } from "./data/mystery-encounters/mystery-encounter";
 import { mysteryEncountersByBiome, allMysteryEncounters, BASE_MYSTERY_ENCOUNTER_SPAWN_WEIGHT, AVERAGE_ENCOUNTERS_PER_RUN_TARGET, WIGHT_INCREMENT_ON_SPAWN_MISS } from "./data/mystery-encounters/mystery-encounters";
-import { MysteryEncounterData, MysteryEncounterAuras, getAuraName, AuraType } from "#app/data/mystery-encounters/mystery-encounter-data";
+import { MysteryEncounterData, MysteryEncounterAuras, AuraType } from "#app/data/mystery-encounters/mystery-encounter-data";
 import { MysteryEncounterType } from "#enums/mystery-encounter-type";
 
 export const bypassLogin = import.meta.env.VITE_BYPASS_LOGIN === "1";
@@ -2151,8 +2151,8 @@ export default class BattleScene extends SceneBase {
   }
 
   addMoney(amount: integer): void {
-    const mysteryIncomeAura = this.mysteryEncounterAuras.FindAura(getAuraName(AuraType.INCOME));
-    const mysteryIncomeMult = 1 + (mysteryIncomeAura.length > 0 ? this.mysteryEncounterAuras.FindAuraTotals(getAuraName(AuraType.INCOME)) : 0);
+    const mysteryIncomeAura = this.mysteryEncounterAuras.FindAura(AuraType.INCOME);
+    const mysteryIncomeMult = 1 + (mysteryIncomeAura.length > 0 ? this.mysteryEncounterAuras.FindAuraTotals(AuraType.INCOME) : 0);
     this.money = Math.min(this.money + Math.floor(amount * mysteryIncomeMult), Number.MAX_SAFE_INTEGER);
     this.updateMoneyText();
     this.animateMoneyChanged(true);
@@ -2161,8 +2161,8 @@ export default class BattleScene extends SceneBase {
 
   getFormattedMoneyString(moneyAmount: number): string {
     const userLocale = navigator.language || "en-US";
-    const mysteryIncomeAura = this.mysteryEncounterAuras.FindAura(getAuraName(AuraType.INCOME));
-    const mysteryIncomeMult = 1 + (mysteryIncomeAura.length > 0 ? this.mysteryEncounterAuras.FindAuraTotals(getAuraName(AuraType.INCOME)) : 0);
+    const mysteryIncomeAura = this.mysteryEncounterAuras.FindAura(AuraType.INCOME);
+    const mysteryIncomeMult = 1 + (mysteryIncomeAura.length > 0 ? this.mysteryEncounterAuras.FindAuraTotals(AuraType.INCOME) : 0);
     const formattedMoneyAmount = (moneyAmount * mysteryIncomeMult).toLocaleString(userLocale);
     const message = i18next.t("battle:moneyWon", { moneyAmount: formattedMoneyAmount });
     return message;
