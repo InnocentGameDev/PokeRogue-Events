@@ -2683,7 +2683,7 @@ export class BattleEndPhase extends BattlePhase {
       }
     }
 
-    this.scene.mysteryEncounterAuras.UpdateAurasDurations();
+    this.scene.mysteryEncounterAuras.UpdateAurasDurations(this.scene);
 
     this.scene.updateModifiers().then(() => this.end());
   }

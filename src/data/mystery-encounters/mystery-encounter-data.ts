@@ -3,6 +3,7 @@ import { MysteryEncounterType } from "#enums/mystery-encounter-type";
 import { BASE_MYSTERY_ENCOUNTER_SPAWN_WEIGHT } from "#app/data/mystery-encounters/mystery-encounters";
 import { isNullOrUndefined } from "#app/utils";
 import { EnemyPokemon, PlayerPokemon } from "field/pokemon";
+import BattleScene from "../../battle-scene";
 
 export class MysteryEncounterData {
   encounteredEvents: [MysteryEncounterType, MysteryEncounterTier][] = [];
@@ -27,17 +28,20 @@ export class MysteryEncounterAuras {
     this.auraList.push(new Aura(target, auraStrength, duration, auraType, team, timeUntilActive));
   }
 
-  UpdateAurasDurations() {
+  UpdateAurasDurations(scene: BattleScene) {
     for (let i = 0; i < this.auraList.length; i++) {
       if (this.auraList[i].timeUntilActive !== 0) {
         this.auraList[i].timeUntilActive -= 1;
       } else {
         if (this.auraList[i].duration > 0) {
           this.auraList[i].duration -= 1; // may need to add a thing here so that if the aura is an instant aura to make it activate instead of dropping off straight away
+          if (this.auraList[i].isInstant() && this.auraList[i].duration === 0 && this.auraList[i].timeUntilActive === 0) {
+            this.TriggerInstantAura(this.auraList[i], scene);
+          }
         }
       }
     }
-    this.auraList = this.auraList.filter(aura => aura.duration !== 0);
+    this.auraList = this.auraList.filter(aura => aura.duration !== 0 && aura.timeUntilActive !== 0);
   }
 
   /* this method will find all auras of a certain type and add up their total strengths.
@@ -100,6 +104,12 @@ export class MysteryEncounterAuras {
     }
     pokemon.updateInfo();
   }
+
+  TriggerInstantAura(aura: Aura, scene: BattleScene) {
+    if (aura.auraType === AuraType.MONEY) {
+      scene.addMoney(aura.auraStrength);
+    }
+  }
 }
 
 export class Aura {
@@ -117,6 +127,10 @@ export class Aura {
     this.auraType = auraType;
     this.team = team;
     this.timeUntilActive = timeUntilActive;
+  }
+
+  isInstant() {
+    return this.auraType === AuraType.MONEY || this.auraType === AuraType.CANDY;
   }
 }
 
@@ -139,7 +153,8 @@ export enum AuraType {
   LUCK,
   XP,
   CANDY,
-  PP
+  PP,
+  PASSIVE
 }
 
 export function getAuraName(aura: AuraType) {
@@ -170,6 +185,8 @@ export function getAuraName(aura: AuraType) {
     return "CANDY";
   case AuraType.PP:
     return "PP";
+  case AuraType.PASSIVE:
+    return "PASSIVE";
   default:
     return "???";
   }

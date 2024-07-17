@@ -19,7 +19,7 @@ import IMysteryEncounter, {
   MysteryEncounterTier,
 } from "../mystery-encounter";
 import { EncounterOptionMode, MysteryEncounterOptionBuilder } from "../mystery-encounter-option";
-import { Aura, AuraType, getAuraName } from "#app/data/mystery-encounters/mystery-encounter-data";
+import { Aura, AuraType, getAuraName, auraStatMap } from "#app/data/mystery-encounters/mystery-encounter-data";
 
 const namespace = "mysteryEncounter:choice_of_balance";
 
@@ -87,7 +87,7 @@ export const ChoiceOfBalanceEncounter: IMysteryEncounter = MysteryEncounterBuild
     encounter.misc = [];
     console.log(encounter);
 
-    const options = 2 + randSeedInt(2); // this makes a random number between 2 and 3 for the options
+    const options = 3;
 
     const rewardsArray = generateRewards(options);
 
@@ -113,11 +113,7 @@ export const ChoiceOfBalanceEncounter: IMysteryEncounter = MysteryEncounterBuild
 
     encounter.setDialogueToken("dynamic1", rewardsArray[0].generateMessage());
     encounter.setDialogueToken("dynamic2", rewardsArray[1].generateMessage());
-    if (options === 3) {
-      encounter.setDialogueToken("dynamic3", rewardsArray[2].generateMessage());
-    } else if (options === 2 && encounter.options.length === 3) {
-      encounter.options.pop();
-    }
+    encounter.setDialogueToken("dynamic3", rewardsArray[2].generateMessage());
 
     return true;
   })
@@ -132,7 +128,7 @@ export const ChoiceOfBalanceEncounter: IMysteryEncounter = MysteryEncounterBuild
         buttonTooltip: `${ namespace }_dynamic_option_1`,
         selected: [
           {
-            text: `${namespace}_option_1_selected_message`,
+            text: `${namespace}_option_selected_message`,
           },
         ],
       })
@@ -150,7 +146,7 @@ export const ChoiceOfBalanceEncounter: IMysteryEncounter = MysteryEncounterBuild
       buttonTooltip: `${namespace}_dynamic_option_2`,
       selected: [
         {
-          text: `${namespace}_option_2_selected_message`,
+          text: `${namespace}_option_selected_message`,
         },
       ],
     },
@@ -165,7 +161,22 @@ export const ChoiceOfBalanceEncounter: IMysteryEncounter = MysteryEncounterBuild
       buttonTooltip: `${namespace}_dynamic_option_3`,
       selected: [
         {
-          text: `${namespace}_option_3_selected_message`,
+          text: `${namespace}_option_selected_message`,
+        },
+      ],
+    },
+    async (scene: BattleScene) => {
+      // Leave encounter with no rewards or exp
+      leaveEncounterWithoutBattle(scene, true);
+      return true;
+    })
+  .withSimpleOption(
+    {
+      buttonLabel: `${namespace}_option_4_label`,
+      buttonTooltip: `${namespace}_option_4_description`,
+      selected: [
+        {
+          text: `${namespace}_option_leave_selected_message`,
         },
       ],
     },
@@ -181,8 +192,7 @@ export enum NegativeRewards {
   LUCK,
   PLAYER_STATS,
   ENEMY_STATS,
-  ADD_POKEMON,
-  DAMAGE_TO_PLAYER,
+  PP,
   NO_REROLL
 }
 
@@ -267,7 +277,7 @@ export class RewardOption {
     switch (type) {
     // These are for percentages
     case NegativeRewards.INCOME:
-    case NegativeRewards.DAMAGE_TO_PLAYER:
+    case NegativeRewards.PP:
     case PositiveRewards.INCOME:
     case PositiveRewards.PP:
       newStrength = String(Math.abs(strength * 100)) + "%";
@@ -282,7 +292,6 @@ export class RewardOption {
       newStrength = String(Math.abs(strength));
       break;
       // These are for exceptions that don't have a strength
-    case NegativeRewards.ADD_POKEMON:
     case NegativeRewards.NO_REROLL:
     case PositiveRewards.INSTANT_CANDY:
       newStrength = "";
@@ -334,7 +343,6 @@ export class RewardOption {
   }
 
   convertRewardsToAura(reward: number): number {
-    const statArray = [AuraType.ATK, AuraType.SPATK, AuraType.DEF, AuraType.SPDEF, AuraType.SPD, AuraType.EVA, AuraType.ACC];
     switch (reward) {
     case NegativeRewards.INCOME:
       return AuraType.INCOME;
@@ -342,9 +350,7 @@ export class RewardOption {
       return AuraType.LUCK;
     case NegativeRewards.PLAYER_STATS:
     case NegativeRewards.ENEMY_STATS:
-      return statArray[this.negativeStat];
-    case NegativeRewards.ADD_POKEMON:
-    case NegativeRewards.DAMAGE_TO_PLAYER:
+      return auraStatMap[this.negativeStat];
     case NegativeRewards.NO_REROLL:
       return -1;
     case PositiveRewards.INCOME:
@@ -353,7 +359,7 @@ export class RewardOption {
       return AuraType.LUCK;
     case PositiveRewards.PLAYER_STATS:
     case PositiveRewards.ENEMY_STATS:
-      return statArray[this.positiveStat];
+      return auraStatMap[this.positiveStat];
     case PositiveRewards.PP:
       return AuraType.PP;
     case PositiveRewards.INSTANT_MONEY:
@@ -369,14 +375,13 @@ const statMessageIndex: [index: number, dialogueName: string, auraStrength: numb
   [NegativeRewards.LUCK, "negative_luck", 0, 15],
   [NegativeRewards.PLAYER_STATS, "negative_player_stats", -1, 10],
   [NegativeRewards.ENEMY_STATS, "negative_enemy_stats", 1, 8],
-  [NegativeRewards.ADD_POKEMON, "negative_add_pokemon", 0, 15],
-  [NegativeRewards.DAMAGE_TO_PLAYER, "negative_damage_to_player", 0.1, 5],
   [NegativeRewards.NO_REROLL, "negative_no_reroll", 0, 7],
+  [NegativeRewards.PP, "negative_pp_chance", -0.1, 10],
   [PositiveRewards.INCOME, "positive_income", 0.7, -1],
   [PositiveRewards.LUCK, "positive_luck", 5, -1],
   [PositiveRewards.PLAYER_STATS, "positive_player_stats", 1, 13],
   [PositiveRewards.ENEMY_STATS, "positive_enemy_stats", -1, 12],
   [PositiveRewards.PP, "positive_pp_chance", 0.2, 40],
   [PositiveRewards.INSTANT_MONEY, "positive_instant_money", 5000, 0],
-  [PositiveRewards.INSTANT_CANDY, "positive_instant_candy", 0, 0]
+  [PositiveRewards.INSTANT_CANDY, "positive_instant_candy", 0, 0],
 ];
