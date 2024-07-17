@@ -39,13 +39,40 @@ export const ChoiceOfBalanceEncounter: IMysteryEncounter = MysteryEncounterBuild
   .withEncounterTier(MysteryEncounterTier.GREAT)
   .withIntroSpriteConfigs([
     {
-      spriteKey: "686",
+      spriteKey: "200",
       fileRoot: "pokemon",
       hasShadow: true,
       x: 4,
-      y: 8,
-      scale: 2.5,
+      y: -16,
+      scale: 1,
       disableAnimation: true // Re-enabled after option select
+    },
+    {
+      spriteKey: "amulet_coin",
+      fileRoot: "items",
+      hasShadow: true,
+      x: 35,
+      y: -3,
+      scale: 0.75,
+      isItem: true,
+    },
+    {
+      spriteKey: "cracked_pot",
+      fileRoot: "items",
+      hasShadow: true,
+      x: 20,
+      y: -14,
+      scale: 0.75,
+      isItem: true,
+    },
+    {
+      spriteKey: "griseous_core",
+      fileRoot: "items",
+      hasShadow: true,
+      x: -6,
+      y: -1,
+      scale: 0.75,
+      isItem: true,
     }
   ])
   .withHideIntroVisuals(false)

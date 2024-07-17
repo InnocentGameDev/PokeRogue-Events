@@ -37,11 +37,11 @@ export const mysteryEncounter: SimpleTranslationEntries = {
   $Your {{pokeName}} jumps in front of you\nbut is KOed in the process.`,
 
   "choice_of_balance_intro_message": `You feel a strange pull in a certain direction.
-  $Heading towards it, you see a weird glow in the distance.
-  $It's an...@d{64} Inkay?! You accidentally make\nsome noise and scare it off...
-  $...but not before dazzling you with its flashing spots!`,
+  $Heading towards it, you hear some weird sounds in the distance.
+  $It's a...@d{64} Misdreavus?! It locks eyes with you and seems to smirk at you.
+  $It moves aside, and you see some items nearby - Misdreavus wants you to take one!`,
   "choice_of_balance_title": "The Choice of Balance",
-  "choice_of_balance_description": "You've been inked by inkay and feel a little woozy. You can't really tell what's good and what's not?",
+  "choice_of_balance_description": "Misdreavus wants you to take one of their items. You can feel from here that while they hold great power, they're slighly cursed. You can tell the curse will wear off shortly",
   "choice_of_balance_query": "What will you choose?",
   "choice_of_balance_option_1_label": "Option A",
   "choice_of_balance_option_1_tooltip": "@[SUMMARY_BLUE]{(35%) Something terrible}\n@[SUMMARY_GREEN]{(40%) Okay Rewards}\n@[SUMMARY_GREEN]{(20%) Good Rewards}\n@[SUMMARY_GREEN]{(4%) Great Rewards}\n@[SUMMARY_GREEN]{(1%) Amazing Rewards}",
@@ -56,17 +56,17 @@ export const mysteryEncounter: SimpleTranslationEntries = {
   "choice_of_balance_negative_luck": "Set luck to",
   "choice_of_balance_negative_player_stats": "Reduce $t(choice_of_balance_negativePlayerSTAT) by",
   "choice_of_balance_negative_enemy_stats": "Increase enemy $t(choice_of_balance_negativeEnemySTAT) by",
-  "choice_of_balance_negative_negativePlayerSTAT": "{{negativePlayerSTAT}}",
-  "choice_of_balance_negative_negativeEnemySTAT": "{{negativeEnemySTAT}}",
+  "choice_of_balance_negativePlayerSTAT": "{{negativePlayerSTAT}}",
+  "choice_of_balance_negativeEnemySTAT": "{{negativeEnemySTAT}}",
   "choice_of_balance_negative_add_pokemon": "Unable to add pokemon",
   "choice_of_balance_negative_damage_to_player": "Increase DMG taken by",
   "choice_of_balance_negative_no_reroll": "No shop rerolls",
   "choice_of_balance_positive_income": "Increase income by",
   "choice_of_balance_positive_luck": "Increase luck by",
-  "choice_of_balance_positive_player_stats": "Increase $t(choice_of_balance_positive_positivePlayerSTAT) by",
-  "choice_of_balance_positive_enemy_stats": "Reduce enemy $t(choice_of_balance_positive_positiveEnemySTAT) by",
-  "choice_of_balance_positive_positivePlayerSTAT": "{{positivePlayerSTAT}}",
-  "choice_of_balance_positive_positiveEnemySTAT": "{{positiveEnemySTAT}}",
+  "choice_of_balance_positive_player_stats": "Increase $t(choice_of_balance_positivePlayerSTAT) by",
+  "choice_of_balance_positive_enemy_stats": "Reduce enemy $t(choice_of_balance_positiveEnemySTAT) by",
+  "choice_of_balance_positivePlayerSTAT": "{{positivePlayerSTAT}}",
+  "choice_of_balance_positiveEnemySTAT": "{{positiveEnemySTAT}}",
   "choice_of_balance_positive_pp_chance": "Reduce PP usage chance",
   "choice_of_balance_positive_instant_money": "Gain money",
   "choice_of_balance_positive_instant_candy": "Gain a rarer candy",

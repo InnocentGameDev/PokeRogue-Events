@@ -92,7 +92,7 @@ export class MysteryEncounterAuras {
     const pokemonAuras = this.FindAurasByPokemon(pokemon);
     const pokemonSummonData = pokemon.summonData ? pokemon.summonData : pokemon.getPrimeSummonData();
     if (pokemonAuras.length > 0) {
-      for (const i = 0; i < pokemonSummonData.battleStats.length; i++) {
+      for (let i = 0; i < pokemonSummonData.battleStats.length; i++) {
         const mysteryStatAura = pokemonAuras.filter(aura => aura.auraType === auraStatMap[i]);
         const totalStatChange = mysteryStatAura.reduce((accumulator, current) => accumulator + current.auraStrength, 0);
         pokemonSummonData.battleStats[i] += mysteryStatAura.length > 0 ? totalStatChange : 0;
