@@ -1,4 +1,4 @@
-import { EnemyPartyConfig } from "#app/data/mystery-encounters/mystery-encounter-utils";
+import { EnemyPartyConfig } from "#app/data/mystery-encounters/utils/encounter-phase-utils";
 import Pokemon, { PlayerPokemon } from "#app/field/pokemon";
 import { isNullOrUndefined } from "#app/utils";
 import { MysteryEncounterType } from "#enums/mystery-encounter-type";
@@ -24,7 +24,8 @@ export enum MysteryEncounterVariant {
   TRAINER_BATTLE,
   WILD_BATTLE,
   BOSS_BATTLE,
-  NO_BATTLE
+  NO_BATTLE,
+  SAFARI_BATTLE
 }
 
 export enum MysteryEncounterTier {
@@ -49,6 +50,7 @@ export default interface IMysteryEncounter {
   hideBattleIntroMessage?: boolean;
   hideIntroVisuals?: boolean;
   catchAllowed?: boolean;
+  maxAllowedEncounters?: number;
   doEncounterExp?: (scene: BattleScene) => boolean;
   doEncounterRewards?: (scene: BattleScene) => boolean;
   onInit?: (scene: BattleScene) => boolean;
@@ -57,14 +59,16 @@ export default interface IMysteryEncounter {
    * Requirements
    */
   requirements?: EncounterSceneRequirement[];
+  /** Primary Pokemon is a single pokemon randomly selected from the party that meet ALL primary pokemon requirements */
   primaryPokemonRequirements?: EncounterPokemonRequirement[];
-  secondaryPokemonRequirements?: EncounterPokemonRequirement[]; // A list of requirements that must ALL be met by a subset of pokemon to trigger the event
+  /**
+   * Secondary Pokemon are pokemon that meet ALL secondary pokemon requirements
+   * Note that an individual requirement may require multiple pokemon, but the resulting pokemon after all secondary requirements are met may be lower than expected
+   * If the primary pokemon and secondary pokemon are the same and ExcludePrimaryFromSupportRequirements flag is true, primary pokemon may be promoted from secondary pool
+   */
+  secondaryPokemonRequirements?: EncounterPokemonRequirement[];
   excludePrimaryFromSupportRequirements?: boolean;
-  // Primary Pokemon is a single pokemon randomly selected from a set of pokemon that meet ALL primary pokemon requirements
   primaryPokemon?: PlayerPokemon;
-  // Support Pokemon are pokemon that meet ALL support pokemon requirements.
-  // Note that an individual requirement may require multiple pokemon, but the resulting pokemon after all secondary requirements are met may be lower than expected
-  // If the primary pokemon and supporting pokemon are the same and ExcludePrimaryFromSupportRequirements flag is true, primary pokemon may be promoted from secondary pool
   secondaryPokemon?: PlayerPokemon[];
 
   /**
@@ -117,7 +121,11 @@ export default interface IMysteryEncounter {
    * Defaults to 1
    */
   expMultiplier?: number;
-
+  /**
+   * Used for keeping RNG consistent on session resets, but increments when cycling through multiple "Encounters" on the same wave
+   * You should never need to modify this
+   */
+  seedOffset?: any;
   /**
    * Generic property to set any custom data required for the encounter
    * Extremely useful for carrying state/data between onPreOptionPhase/onOptionPhase/onPostOptionPhase
@@ -137,6 +145,8 @@ export default class IMysteryEncounter implements IMysteryEncounter {
     }
     this.encounterTier = this.encounterTier ? this.encounterTier : MysteryEncounterTier.COMMON;
     this.dialogue = this.dialogue ?? {};
+    // Default max is 1 for ROGUE encounters, 3 for others
+    this.maxAllowedEncounters = this.maxAllowedEncounters ?? this.encounterTier === MysteryEncounterTier.ROGUE ? 1 : 3;
     this.encounterVariant = MysteryEncounterVariant.DEFAULT;
     this.requirements = this.requirements ? this.requirements : [];
     this.hideBattleIntroMessage = !isNullOrUndefined(this.hideBattleIntroMessage) ? this.hideBattleIntroMessage : false;
@@ -189,7 +199,6 @@ export default class IMysteryEncounter implements IMysteryEncounter {
     }
     let qualified: PlayerPokemon[] = scene.getParty();
     for (const req of this.primaryPokemonRequirements) {
-      console.log(req);
       if (req.meetsRequirement(scene)) {
         if (req instanceof EncounterPokemonRequirement) {
           qualified = qualified.filter(pkmn => req.queryParty(scene.getParty()).includes(pkmn));
@@ -373,8 +382,11 @@ export class MysteryEncounterBuilder implements Partial<IMysteryEncounter> {
   }
 
   /**
-   * Defines an option for the encounter
-   * There should be at least 2 options defined and no more than 4
+   * Defines an option for the encounter.
+   * Use for complex options.
+   * There should be at least 2 options defined and no more than 4.
+   * If easy/streamlined use {@linkcode MysteryEncounterBuilder.withOptionPhase}
+   *
    * @param option - MysteryEncounterOption to add, can use MysteryEncounterOptionBuilder to create instance
    * @returns
    */
@@ -390,8 +402,10 @@ export class MysteryEncounterBuilder implements Partial<IMysteryEncounter> {
   }
 
   /**
-   * Adds a streamlined option phase.
-   * Only use if no pre-/post-options or condtions necessary.
+   * Defines an option + phasefor the encounter.
+   * Use for easy/streamlined options.
+   * There should be at least 2 options defined and no more than 4.
+   * If complex use {@linkcode MysteryEncounterBuilder.withOption}
    *
    * @param dialogue - {@linkcode OptionTextDisplay}
    * @param callback - {@linkcode OptionPhaseCallback}
@@ -429,15 +443,24 @@ export class MysteryEncounterBuilder implements Partial<IMysteryEncounter> {
    * If not specified, defaults to COMMON
    * Tiers are:
    * COMMON 32/64 odds
-   * UNCOMMON 16/64 odds
-   * RARE 10/64 odds
-   * SUPER_RARE 6/64 odds
+   * GREAT 16/64 odds
+   * ULTRA 10/64 odds
+   * ROGUE 6/64 odds
    * ULTRA_RARE Not currently used
    * @param encounterTier
    * @returns
    */
   withEncounterTier(encounterTier: MysteryEncounterTier): this & Required<Pick<IMysteryEncounter, "encounterTier">> {
     return Object.assign(this, { encounterTier: encounterTier });
+  }
+
+  /**
+   * Sets the maximum number of times that an encounter can spawn in a given Classic run
+   * @param maxAllowedEncounters
+   * @returns
+   */
+  withMaxAllowedEncounters(maxAllowedEncounters: number): this & Required<Pick<IMysteryEncounter, "maxAllowedEncounters">> {
+    return Object.assign(this, { maxAllowedEncounters: maxAllowedEncounters });
   }
 
   /**

@@ -1,15 +1,17 @@
-import IMysteryEncounter from "./mystery-encounter";
+import { Biome } from "#enums/biome";
+import { MysteryEncounterType } from "#enums/mystery-encounter-type";
 import { DarkDealEncounter } from "./encounters/dark-deal-encounter";
+import { DepartmentStoreSaleEncounter } from "./encounters/department-store-sale-encounter";
+import { FieldTripEncounter } from "./encounters/field-trip-encounter";
+import { FightOrFlightEncounter } from "./encounters/fight-or-flight-encounter";
+import { LostAtSeaEncounter } from "./encounters/lost-at-sea-encounter";
 import { MysteriousChallengersEncounter } from "./encounters/mysterious-challengers-encounter";
 import { MysteriousChestEncounter } from "./encounters/mysterious-chest-encounter";
-import { FightOrFlightEncounter } from "#app/data/mystery-encounters/encounters/fight-or-flight-encounter";
-import { TrainingSessionEncounter } from "#app/data/mystery-encounters/encounters/training-session-encounter";
-import { Biome } from "#enums/biome";
-import { SleepingSnorlaxEncounter } from "./encounters/sleeping-snorlax-encounter";
-import { MysteryEncounterType } from "#enums/mystery-encounter-type";
-import { DepartmentStoreSaleEncounter } from "./encounters/department-store-sale-encounter";
 import { ShadyVitaminDealerEncounter } from "./encounters/shady-vitamin-dealer-encounter";
-import { FieldTripEncounter } from "./encounters/field-trip-encounter";
+import { SleepingSnorlaxEncounter } from "./encounters/sleeping-snorlax-encounter";
+import { TrainingSessionEncounter } from "./encounters/training-session-encounter";
+import IMysteryEncounter from "./mystery-encounter";
+import { SafariZoneEncounter } from "#app/data/mystery-encounters/encounters/safari-zone-encounter";
 import { ChoiceOfBalanceEncounter } from "./encounters/choice-of-balance-encounter";
 
 // Spawn chance: (BASE_MYSTERY_ENCOUNTER_SPAWN_WEIGHT + WIGHT_INCREMENT_ON_SPAWN_MISS * <number of missed spawns>) / 256
@@ -163,10 +165,16 @@ export const mysteryEncountersByBiome = new Map<Biome, MysteryEncounterType[]>([
   [Biome.TALL_GRASS, []],
   [Biome.METROPOLIS, []],
   [Biome.FOREST, [
-    MysteryEncounterType.SLEEPING_SNORLAX
+    MysteryEncounterType.SLEEPING_SNORLAX,
+    MysteryEncounterType.SAFARI_ZONE
   ]],
-  [Biome.SEA, []],
-  [Biome.SWAMP, []],
+
+  [Biome.SEA, [
+    MysteryEncounterType.LOST_AT_SEA
+  ]],
+  [Biome.SWAMP, [
+    MysteryEncounterType.SAFARI_ZONE
+  ]],
   [Biome.BEACH, []],
   [Biome.LAKE, []],
   [Biome.SEABED, []],
@@ -190,7 +198,9 @@ export const mysteryEncountersByBiome = new Map<Biome, MysteryEncounterType[]>([
   [Biome.ABYSS, []],
   [Biome.SPACE, []],
   [Biome.CONSTRUCTION_SITE, []],
-  [Biome.JUNGLE, []],
+  [Biome.JUNGLE, [
+    MysteryEncounterType.SAFARI_ZONE
+  ]],
   [Biome.FAIRY_CAVE, []],
   [Biome.TEMPLE, []],
   [Biome.SLUM, []],
@@ -210,6 +220,8 @@ export function initMysteryEncounters() {
   allMysteryEncounters[MysteryEncounterType.SHADY_VITAMIN_DEALER] = ShadyVitaminDealerEncounter;
   allMysteryEncounters[MysteryEncounterType.CHOICE_OF_BALANCE] = ChoiceOfBalanceEncounter;
   allMysteryEncounters[MysteryEncounterType.FIELD_TRIP] = FieldTripEncounter;
+  allMysteryEncounters[MysteryEncounterType.SAFARI_ZONE] = SafariZoneEncounter;
+  allMysteryEncounters[MysteryEncounterType.LOST_AT_SEA] = LostAtSeaEncounter;
 
   // Add extreme encounters to biome map
   extremeBiomeEncounters.forEach(encounter => {

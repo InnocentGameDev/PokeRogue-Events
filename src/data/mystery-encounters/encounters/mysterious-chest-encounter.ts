@@ -1,14 +1,11 @@
+import { queueEncounterMessage, showEncounterText } from "#app/data/mystery-encounters/utils/encounter-dialogue-utils";
 import {
-  getHighestLevelPlayerPokemon,
-  koPlayerPokemon,
   leaveEncounterWithoutBattle,
-  queueEncounterMessage,
-  setEncounterRewards,
-  showEncounterText,
-} from "#app/data/mystery-encounters/mystery-encounter-utils";
+  setEncounterRewards
+} from "#app/data/mystery-encounters/utils/encounter-phase-utils";
+import { getHighestLevelPlayerPokemon, koPlayerPokemon } from "#app/data/mystery-encounters/utils/encounter-pokemon-utils";
 import { ModifierTier } from "#app/modifier/modifier-tier";
-import { GameOverPhase } from "#app/phases";
-import { randSeedInt } from "#app/utils";
+import { randSeedInt } from "#app/utils.js";
 import { MysteryEncounterType } from "#enums/mystery-encounter-type";
 import BattleScene from "../../../battle-scene";
 import IMysteryEncounter, {
@@ -30,7 +27,8 @@ export const MysteriousChestEncounter: IMysteryEncounter =
         fileRoot: "mystery-encounters",
         hasShadow: true,
         x: 4,
-        y: 8,
+        y: 10,
+        yShadowOffset: 3,
         disableAnimation: true, // Re-enabled after option select
       },
     ])
@@ -75,10 +73,7 @@ export const MysteriousChestEncounter: IMysteryEncounter =
               ],
             });
             // Display result message then proceed to rewards
-            queueEncounterMessage(
-              scene,
-              "mysteryEncounter:mysterious_chest_option_1_normal_result"
-            );
+            queueEncounterMessage(scene, "mysteryEncounter:mysterious_chest_option_1_normal_result");
             leaveEncounterWithoutBattle(scene);
           } else if (roll > 40) {
             // Choose between 3 ULTRA tier items (20%)
@@ -90,10 +85,7 @@ export const MysteriousChestEncounter: IMysteryEncounter =
               ],
             });
             // Display result message then proceed to rewards
-            queueEncounterMessage(
-              scene,
-              "mysteryEncounter:mysterious_chest_option_1_good_result"
-            );
+            queueEncounterMessage(scene, "mysteryEncounter:mysterious_chest_option_1_good_result");
             leaveEncounterWithoutBattle(scene);
           } else if (roll > 36) {
             // Choose between 2 ROGUE tier items (4%)
@@ -101,10 +93,7 @@ export const MysteriousChestEncounter: IMysteryEncounter =
               guaranteedModifierTiers: [ModifierTier.ROGUE, ModifierTier.ROGUE],
             });
             // Display result message then proceed to rewards
-            queueEncounterMessage(
-              scene,
-              "mysteryEncounter:mysterious_chest_option_1_great_result"
-            );
+            queueEncounterMessage(scene, "mysteryEncounter:mysterious_chest_option_1_great_result");
             leaveEncounterWithoutBattle(scene);
           } else if (roll > 35) {
             // Choose 1 MASTER tier item (1%)
@@ -112,10 +101,7 @@ export const MysteriousChestEncounter: IMysteryEncounter =
               guaranteedModifierTiers: [ModifierTier.MASTER],
             });
             // Display result message then proceed to rewards
-            queueEncounterMessage(
-              scene,
-              "mysteryEncounter:mysterious_chest_option_1_amazing_result"
-            );
+            queueEncounterMessage(scene, "mysteryEncounter:mysterious_chest_option_1_amazing_result");
             leaveEncounterWithoutBattle(scene);
           } else {
             // Your highest level unfainted Pok�mon gets OHKO. Progress with no rewards (35%)
@@ -125,26 +111,11 @@ export const MysteriousChestEncounter: IMysteryEncounter =
             );
             koPlayerPokemon(highestLevelPokemon);
 
-            scene.currentBattle.mysteryEncounter.setDialogueToken(
-              "pokeName",
-              highestLevelPokemon.name
-            );
+            scene.currentBattle.mysteryEncounter.setDialogueToken("pokeName", highestLevelPokemon.name);
             // Show which Pokemon was KOed, then leave encounter with no rewards
             // Does this synchronously so that game over doesn't happen over result message
-            await showEncounterText(
-              scene,
-              "mysteryEncounter:mysterious_chest_option_1_bad_result"
-            ).then(() => {
-              if (
-                scene.getParty().filter((p) => p.isAllowedInBattle()).length ===
-                0
-              ) {
-                // All pokemon fainted, game over
-                scene.clearPhaseQueue();
-                scene.unshiftPhase(new GameOverPhase(scene));
-              } else {
-                leaveEncounterWithoutBattle(scene);
-              }
+            await showEncounterText(scene, "mysteryEncounter:mysterious_chest_option_1_bad_result").then(() => {
+              leaveEncounterWithoutBattle(scene);
             });
           }
         })

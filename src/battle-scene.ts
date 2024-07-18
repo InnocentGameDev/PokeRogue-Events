@@ -1072,13 +1072,14 @@ export default class BattleScene extends SceneBase {
         this.field.add(newTrainer);
       }
 
-      // Check for mystery encounter
-      // Can only occur in place of a standard wild battle, waves 10-180
+      // TODO: remove this once spawn rates are finalized
       // let testStartingWeight = 0;
-      // while (testStartingWeight < 20) {
+      // while (testStartingWeight < 3) {
       //   calculateMEAggregateStats(this, testStartingWeight);
       //   testStartingWeight += 1;
       // }
+      // Check for mystery encounter
+      // Can only occur in place of a standard wild battle, waves 10-180
       if (this.gameMode.hasMysteryEncounters && newBattleType === BattleType.WILD && !this.gameMode.isBoss(newWaveIndex) && newWaveIndex < 180 && newWaveIndex > 10) {
         const roll = Utils.randSeedInt(256);
 
@@ -2663,7 +2664,7 @@ export default class BattleScene extends SceneBase {
     }
 
     // Common / Uncommon / Rare / Super Rare
-    const tierWeights = [61, 40, 21, 6];
+    const tierWeights = [64, 40, 21, 3];
 
     // Adjust tier weights by previously encountered events to lower odds of only common/uncommons in run
     this.mysteryEncounterData.encounteredEvents.forEach(val => {
@@ -2689,14 +2690,27 @@ export default class BattleScene extends SceneBase {
     let availableEncounters: IMysteryEncounter[] = [];
     // New encounter will never be the same as the most recent encounter
     const previousEncounter = this.mysteryEncounterData.encounteredEvents?.length > 0 ? this.mysteryEncounterData.encounteredEvents[this.mysteryEncounterData.encounteredEvents.length - 1][0] : null;
-    const biomeMysteryEncounters = mysteryEncountersByBiome.get(this.arena.biomeType);
+    const biomeMysteryEncounters = mysteryEncountersByBiome.get(this.arena.biomeType) ?? [];
     // If no valid encounters exist at tier, checks next tier down, continuing until there are some encounters available
     while (availableEncounters.length === 0 && tier >= 0) {
       availableEncounters = biomeMysteryEncounters
-        .filter((encounterType) =>
-          allMysteryEncounters[encounterType]?.meetsRequirements(this) &&
-          allMysteryEncounters[encounterType].encounterTier === tier &&
-          (isNullOrUndefined(previousEncounter) || encounterType !== previousEncounter))
+        .filter((encounterType) => {
+          if (allMysteryEncounters[encounterType].encounterTier !== tier) { // Encounter is in tier
+            return false;
+          }
+          if (!allMysteryEncounters[encounterType]?.meetsRequirements(this)) { // Meets encounter requirements
+            return false;
+          }
+          if (!isNullOrUndefined(previousEncounter) && encounterType === previousEncounter) { // Previous encounter was not this one
+            return false;
+          }
+          if (this.mysteryEncounterData.encounteredEvents?.length > 0 && // Encounter has not exceeded max allowed encounters
+            allMysteryEncounters[encounterType].maxAllowedEncounters > 0
+            && this.mysteryEncounterData.encounteredEvents.filter(e => e[0] === encounterType).length >= allMysteryEncounters[encounterType].maxAllowedEncounters) {
+            return false;
+          }
+          return true;
+        })
         .map((m) => (allMysteryEncounters[m]));
       tier--;
     }
