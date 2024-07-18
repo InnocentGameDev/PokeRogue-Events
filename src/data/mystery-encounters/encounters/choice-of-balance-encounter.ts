@@ -6,7 +6,7 @@
 //  setEncounterRewards,
 //  showEncounterText,
 //} from "#app/data/mystery-encounters/mystery-encounter-utils";
-import { leaveEncounterWithoutBattle } from "#app/data/mystery-encounters/mystery-encounter-utils";
+import { leaveEncounterWithoutBattle } from "#app/data/mystery-encounters/utils/encounter-phase-utils";
 //import { mysteryEncounter } from "#app/locales/en/mystery-encounter";
 //import { ModifierTier } from "#app/modifier/modifier-tier";
 //import { GameOverPhase } from "#app/phases";
