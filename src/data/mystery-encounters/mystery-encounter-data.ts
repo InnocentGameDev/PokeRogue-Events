@@ -24,24 +24,29 @@ export class MysteryEncounterAuras {
     this.auraList = [];
   }
 
-  AddAura(target: number[], auraStrength: number, duration: number, auraType: number, team: number, timeUntilActive: number = 0) {
-    this.auraList.push(new Aura(target, auraStrength, duration, auraType, team, timeUntilActive));
+
+  //AddAura(targetOrAura: number[] | Aura, auraStrength: number, duration: number, auraType: number, team: number, timeUntilActive: number = 0) {
+  //  this.auraList.push(new Aura(targetOrAura, auraStrength, duration, auraType, team, timeUntilActive));
+  //}
+
+  AddAura(aura: Aura) {
+    this.auraList.push(aura);
   }
 
   UpdateAurasDurations(scene: BattleScene) {
     for (let i = 0; i < this.auraList.length; i++) {
       if (this.auraList[i].timeUntilActive !== 0) {
-        this.auraList[i].timeUntilActive -= 1;
+        this.auraList[i].timeUntilActive -= 1; // removes a turn from the timeUntilActive
       } else {
         if (this.auraList[i].duration > 0) {
-          this.auraList[i].duration -= 1; // may need to add a thing here so that if the aura is an instant aura to make it activate instead of dropping off straight away
-          if (this.auraList[i].isInstant() && this.auraList[i].duration === 0 && this.auraList[i].timeUntilActive === 0) {
+          this.auraList[i].duration -= 1; // removes a counter from the duration
+          if (this.auraList[i].isInstant() && this.auraList[i].duration === 0 && this.auraList[i].timeUntilActive === 0) { // this checks if the aura is an instant effect
             this.TriggerInstantAura(this.auraList[i], scene);
           }
         }
       }
     }
-    this.auraList = this.auraList.filter(aura => aura.duration !== 0 && aura.timeUntilActive !== 0);
+    this.auraList = this.auraList.filter(aura => aura.duration !== 0 && aura.timeUntilActive !== 0); // this updates our list to make sure to only have things that are peristent or still counting down
   }
 
   /* this method will find all auras of a certain type and add up their total strengths.

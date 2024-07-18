@@ -135,6 +135,8 @@ export const ChoiceOfBalanceEncounter: IMysteryEncounter = MysteryEncounterBuild
       .withOptionPhase(async (scene: BattleScene) => {
         // Leave encounter with no rewards or exp
         //[const negativeAura, const positiveAura]
+        scene.mysteryEncounterAuras.AddAura(scene.currentBattle.mysteryEncounter.misc[0].negativeAura);
+        scene.mysteryEncounterAuras.AddAura(scene.currentBattle.mysteryEncounter.misc[0].positiveAura);
         leaveEncounterWithoutBattle(scene, true);
         return true;
       })
@@ -152,6 +154,8 @@ export const ChoiceOfBalanceEncounter: IMysteryEncounter = MysteryEncounterBuild
     },
     async (scene: BattleScene) => {
     // Leave encounter with no rewards or exp
+      scene.mysteryEncounterAuras.AddAura(scene.currentBattle.mysteryEncounter.misc[1].negativeAura);
+      scene.mysteryEncounterAuras.AddAura(scene.currentBattle.mysteryEncounter.misc[1].positiveAura);
       leaveEncounterWithoutBattle(scene, true);
       return true;
     })
@@ -167,6 +171,8 @@ export const ChoiceOfBalanceEncounter: IMysteryEncounter = MysteryEncounterBuild
     },
     async (scene: BattleScene) => {
       // Leave encounter with no rewards or exp
+      scene.mysteryEncounterAuras.AddAura(scene.currentBattle.mysteryEncounter.misc[2].negativeAura);
+      scene.mysteryEncounterAuras.AddAura(scene.currentBattle.mysteryEncounter.misc[2].positiveAura);
       leaveEncounterWithoutBattle(scene, true);
       return true;
     })

@@ -27,7 +27,7 @@ import { BattlerTagType } from "#enums/battler-tag-type";
 import { BerryType } from "#enums/berry-type";
 import { Moves } from "#enums/moves";
 import { Species } from "#enums/species";
-import { AuraType } from "#app/data/mystery-encounters/mystery-encounter-data";
+import { Aura, AuraType } from "#app/data/mystery-encounters/mystery-encounter-data";
 
 const outputModifierData = false;
 const useMaxWeightForOutput = false;
@@ -410,6 +410,20 @@ export class RememberMoveModifierType extends PokemonModifierType {
         }
         return null;
       }, group);
+  }
+}
+
+export class AuraModifierType extends ModifierType {
+  private myAuraData: any;
+
+  constructor(localeKey: string, iconImage: string, myAuraData?: Aura) {
+    super(localeKey, iconImage, () => new Modifiers.AuraModifier(this, myAuraData));
+
+    this.myAuraData = myAuraData;
+  }
+
+  getDescription(scene: BattleScene): string {
+    return i18next.t("modifierType:ModifierType.AugmentModifierType.description", { myAuraData: this.myAuraData });
   }
 }
 
@@ -1202,6 +1216,8 @@ export const modifierTypes = {
   /*REPEL: () => new DoubleBattleChanceBoosterModifierType('Repel', 5),
   SUPER_REPEL: () => new DoubleBattleChanceBoosterModifierType('Super Repel', 10),
   MAX_REPEL: () => new DoubleBattleChanceBoosterModifierType('Max Repel', 25),*/
+
+  AURA_STAT: () => new AuraModifierType("aura_stat_EVA", "lucarionite"),
 
   LURE: () => new DoubleBattleChanceBoosterModifierType("modifierType:ModifierType.LURE", "lure", 5),
   SUPER_LURE: () => new DoubleBattleChanceBoosterModifierType("modifierType:ModifierType.SUPER_LURE", "super_lure", 10),
