@@ -144,6 +144,13 @@ export async function initI18n(): Promise<void> {
     return `@[MONEY]{₽${numberFormattedString}}`;
   });
 
+  // Input: {{percentageValue, percent}} - this will be a percentage as a decimal - i.e. 0.2
+  // Output: {20%}
+  i18next.services.formatter.add("percent", (value, lng, options) => {
+    const percentFormattedString = Intl.NumberFormat(lng, options).format(Math.abs(value) * 100);
+    return `${percentFormattedString}%`;
+  });
+
   await initFonts();
 }
 

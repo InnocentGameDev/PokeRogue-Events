@@ -323,6 +323,32 @@ export abstract class LapsingPersistentModifier extends PersistentModifier {
   }
 }
 
+export class AuraModifier extends LapsingPersistentModifier {
+  constructor(type: ModifierTypes.AuraModifierType, battlesLeft: number) {
+    super(type, battlesLeft);
+  }
+
+  match(modifier: Modifier): boolean {
+    if (modifier instanceof AuraModifier) {
+      // Check type id to not match different tiers of lures
+      return modifier.type.id === this.type.id && modifier.battlesLeft === this.battlesLeft;
+    }
+    return false;
+  }
+
+  clone(): AuraModifier {
+    return new AuraModifier(this.type as ModifierTypes.AuraModifierType, this.battlesLeft);
+  }
+
+  getArgs(): any[] {
+    return [this.battlesLeft];
+  }
+
+  apply(args: any[]): boolean {
+    return true;
+  }
+}
+
 export class DoubleBattleChanceBoosterModifier extends LapsingPersistentModifier {
   constructor(type: ModifierTypes.DoubleBattleChanceBoosterModifierType, battlesLeft: integer, stackCount?: integer) {
     super(type, battlesLeft, stackCount);

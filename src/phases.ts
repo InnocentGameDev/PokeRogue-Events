@@ -976,6 +976,13 @@ export class EncounterPhase extends BattlePhase {
     }
 
     const enemyField = this.scene.getEnemyField();
+    const playerField = this.scene.getPlayerField();
+    for (let i = 0; i < enemyField.length; i++) {
+      this.scene.mysteryEncounterAuras.UpdateStats(enemyField[i]);
+    }
+    for (let i = 0; i < playerField.length; i++) {
+      this.scene.mysteryEncounterAuras.UpdateStats(playerField[i]);
+    }
     this.scene.tweens.add({
       targets: [this.scene.arenaEnemy, this.scene.currentBattle.trainer, enemyField, this.scene.currentBattle?.mysteryEncounter?.introVisuals, this.scene.arenaPlayer, this.scene.trainer].flat(),
       x: (_target, _key, value, fieldIndex: integer) => fieldIndex < 3 + (enemyField.length) ? value + 300 : value - 300,
@@ -2677,6 +2684,8 @@ export class BattleEndPhase extends BattlePhase {
       }
     }
 
+    this.scene.mysteryEncounterAuras.UpdateAurasDurations(this.scene);
+
     this.scene.updateModifiers().then(() => this.end());
   }
 }
@@ -4235,9 +4244,10 @@ export class MoneyRewardPhase extends BattlePhase {
 
     this.scene.addMoney(moneyAmount.value);
 
-    const userLocale = navigator.language || "en-US";
-    const formattedMoneyAmount = moneyAmount.value.toLocaleString(userLocale);
-    const message = i18next.t("battle:moneyWon", { moneyAmount: formattedMoneyAmount });
+    //const userLocale = navigator.language || "en-US";
+    //const formattedMoneyAmount = moneyAmount.value.toLocaleString(userLocale);
+    //const message = i18next.t("battle:moneyWon", { moneyAmount: formattedMoneyAmount });
+    const message = this.scene.getFormattedMoneyString(moneyAmount.value);
 
     this.scene.ui.showText(message, null, () => this.end(), null, true);
   }

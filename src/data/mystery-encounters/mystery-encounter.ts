@@ -153,6 +153,7 @@ export default class IMysteryEncounter implements IMysteryEncounter {
     this.hideIntroVisuals = !isNullOrUndefined(this.hideIntroVisuals) ? this.hideIntroVisuals : true;
 
     // Reset any dirty flags or encounter data
+    this.options = [...this.options];
     this.lockEncounterRewardTiers = true;
     this.dialogueTokens = {};
     this.enemyPartyConfigs = [];

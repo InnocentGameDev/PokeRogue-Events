@@ -2650,6 +2650,10 @@ export default abstract class Pokemon extends Phaser.GameObjects.Container {
     this.summonDataPrimer = summonDataPrimer;
   }
 
+  getPrimeSummonData(): PokemonSummonData {
+    return this.summonDataPrimer;
+  }
+
   resetSummonData(): void {
     if (this.summonData?.speciesForm) {
       this.summonData.speciesForm = null;
