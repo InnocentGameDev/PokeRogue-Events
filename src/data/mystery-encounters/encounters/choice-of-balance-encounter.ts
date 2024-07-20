@@ -1,4 +1,4 @@
-//import {
+﻿//import {
 //  getHighestLevelPlayerPokemon,
 //  koPlayerPokemon,
 //  leaveEncounterWithoutBattle,
@@ -125,7 +125,7 @@ export const ChoiceOfBalanceEncounter: IMysteryEncounter = MysteryEncounterBuild
       .withOptionMode(EncounterOptionMode.DEFAULT)
       .withDialogue({
         buttonLabel: `${namespace}_option_1_label`,
-        buttonTooltip: `${ namespace }_dynamic_option_1`,
+        buttonTooltip: `${ namespace }_dynamic_tooltip_1`,
         selected: [
           {
             text: `${namespace}_option_selected_message`,
@@ -145,7 +145,7 @@ export const ChoiceOfBalanceEncounter: IMysteryEncounter = MysteryEncounterBuild
   .withSimpleOption(
     {
       buttonLabel: `${namespace}_option_2_label`,
-      buttonTooltip: `${namespace}_dynamic_option_2`,
+      buttonTooltip: `${namespace}_dynamic_tooltip_2`,
       selected: [
         {
           text: `${namespace}_option_selected_message`,
@@ -162,7 +162,7 @@ export const ChoiceOfBalanceEncounter: IMysteryEncounter = MysteryEncounterBuild
   .withSimpleOption(
     {
       buttonLabel: `${namespace}_option_3_label`,
-      buttonTooltip: `${namespace}_dynamic_option_3`,
+      buttonTooltip: `${namespace}_dynamic_tooltip_3`,
       selected: [
         {
           text: `${namespace}_option_selected_message`,
@@ -252,23 +252,33 @@ export class RewardOption {
   generateMessage(): string {
     const [negativeType, negativeText, negativeStrength, negativeDuration] = this.getRewardInfo(this.negativeOption);
     const [positiveType, positiveText, positiveStrength, positiveDuration] = this.getRewardInfo(this.positiveOption);
-    const outputMessage: string[] = [];
-    outputMessage.push(this.getDescriptorText(negativeText));
-    if (this.formattedStrengths(negativeType, negativeStrength) !== "") {
-      outputMessage.push(this.formattedStrengths(negativeType, negativeStrength));
+    let outputMessage: string;
+
+    const formattedNegativeStrength = this.formattedStrengths(negativeType, negativeStrength);
+    const formattedPositiveStrength = this.formattedStrengths(positiveType, positiveStrength);
+    if (negativeDuration > 0) {
+      // this is a normal reward; the output message uses {{description}}, {{strength}} and {{duration}} to describe a reward
+      outputMessage = i18next.t("mysteryEncounter:choice_of_balance_text_template_normal", { descriptor: this.getDescriptorText(negativeText), strength: formattedNegativeStrength !== "" ? " " + formattedNegativeStrength : "", duration: negativeDuration });
+    } else if (negativeDuration === 0) {
+      // this is an instant reward; the output message uses {{description}} and {{strength}} to describe a reward
+      outputMessage = i18next.t("mysteryEncounter:choice_of_balance_text_template_instant", { descriptor: this.getDescriptorText(negativeText), strength: formattedNegativeStrength !== "" ? " " + formattedNegativeStrength : "" });
+    } else if (negativeDuration < 0) {
+      // this is a reward that lasts the rest of the run; the output message uses {{description}} and {{strength}} to describe a reward
+      outputMessage = i18next.t("mysteryEncounter:choice_of_balance_text_template_permanent", { descriptor: this.getDescriptorText(negativeText), strength: formattedNegativeStrength !== "" ? " " + formattedNegativeStrength : "" });
     }
-    outputMessage.push(this.getDescriptorText("for"));
-    outputMessage.push(this.formattedWaves(negativeDuration));
-    outputMessage.push(this.getDescriptorText("then"));
-    outputMessage.push(this.getDescriptorText(positiveText));
-    if (this.formattedStrengths(positiveType, positiveStrength) !== "") {
-      outputMessage.push(this.formattedStrengths(positiveType, positiveStrength));
+    outputMessage += " " + i18next.t(this.getDescriptorText("then")) + " ";
+
+    if (positiveDuration > 0) {
+      // this is a normal reward; the output message uses {{description}}, {{strength}} and {{duration}} to describe a reward
+      outputMessage += i18next.t("mysteryEncounter:choice_of_balance_text_template_normal", { descriptor: this.getDescriptorText(positiveText), strength: formattedPositiveStrength !== "" ? " " + formattedPositiveStrength : "", duration: positiveDuration });
+    } else if (positiveDuration === 0) {
+      // this is an instant reward; the output message uses {{description}} and {{strength}} to describe a reward
+      outputMessage += i18next.t("mysteryEncounter:choice_of_balance_text_template_instant", { descriptor: this.getDescriptorText(positiveText), strength: formattedPositiveStrength !== "" ? " " + formattedPositiveStrength : "" });
+    } else if (positiveDuration < 0) {
+      // this is a reward that lasts the rest of the run; the output message uses {{description}} and {{strength}} to describe a reward
+      outputMessage += i18next.t("mysteryEncounter:choice_of_balance_text_template_permanent", { descriptor: this.getDescriptorText(positiveText), strength: formattedPositiveStrength !== "" ? " " + formattedPositiveStrength : "" });
     }
-    if (positiveDuration !== 0) {
-      outputMessage.push(this.getDescriptorText("for"));
-    }
-    outputMessage.push(this.formattedWaves(positiveDuration));
-    return outputMessage.join(" ");
+    return outputMessage;//.join(" ");
   }
 
   getRewardInfo(reward: number): [index: number, dialogueName: string, auraStrength: number, auraDuration: number] {
@@ -286,7 +296,7 @@ export class RewardOption {
     case NegativeRewards.PP:
     case PositiveRewards.INCOME:
     case PositiveRewards.PP:
-      newStrength = String(Math.abs(strength * 100)) + "%";
+      newStrength = i18next.t("{{percentageValue, percent}}", { percentageValue: strength });
       break;
       // These are for single numbers (i.e. stat stage increase/decrease, luck increase/decrease etc)
     case NegativeRewards.LUCK:
@@ -304,7 +314,7 @@ export class RewardOption {
       break;
       // These are for money rewards
     case PositiveRewards.INSTANT_MONEY:
-      newStrength = "$" + String(strength);
+      newStrength = i18next.t("{{moneyValue, money}}", { moneyValue: strength });
       break;
     default:
       console.log("Missing formattedStrengths!!!");
@@ -312,18 +322,6 @@ export class RewardOption {
       break;
     }
     return newStrength;
-  }
-
-  private formattedWaves(duration: number): string {
-    let waveDuration: string;
-    if (duration < 0) {
-      waveDuration = this.getDescriptorText("rest_of_run");
-    } else if (duration === 0) {
-      waveDuration = this.getDescriptorText("instantly");
-    } else if (duration > 0) {
-      waveDuration = String(duration) + " " + this.getDescriptorText("waves");
-    }
-    return waveDuration;
   }
 
   private getDescriptorText(text: string) {
