@@ -4476,7 +4476,7 @@ export class GameOverPhase extends BattlePhase {
     If Online, execute apiFetch as intended
     If Offline, execute offlineNewClear(), a localStorage implementation of newClear daily run checks */
     if (this.victory) {
-      if (!Utils.isLocal || bypassLogin) {
+      if (!Utils.isLocal || !bypassLogin) {
         Utils.apiFetch(`savedata/session/newclear?slot=${this.scene.sessionSlotId}&clientSessionId=${clientSessionId}`, true)
           .then(response => response.json())
           .then(newClear => doGameOver(newClear));
