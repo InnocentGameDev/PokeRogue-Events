@@ -1,29 +1,29 @@
 export const darkDealDialogue = {
-  intro: "A strange man in a tattered coat\nstands in your way...",
-  speaker: "Shady Guy",
-  intro_dialogue: `Hey, you!
-    $I've been working on a new device\nto bring out a Pokémon's latent power!
-    $It completely rebinds the Pokémon's atoms\nat a molecular level into a far more powerful form.
-    $Hehe...@d{64} I just need some sac-@d{32}\nErr, test subjects, to prove it works.`,
-  title: "Dark Deal",
-  description: "The disturbing fellow holds up some Pokéballs.\n\"I'll make it worth your while! You can have these strong Pokéballs as payment, All I need is a Pokémon from your team! Hehe...\"",
-  query: "What will you do?",
+  intro: "너덜너덜한 외투를 입은 낯선 남자가\n당신을 막아섭니다....",
+  speaker: "수상한 사람",
+  intro_dialogue: `거기, 너!
+    $난 포켓몬의 잠재된 힘을 끌어낼 수 있는\n새로운 장치를 개발 중이거든!
+    $분자 수준에서 포켓몬의 원자를\n훨씬 더 강력한 형태로 완전히 재결합시키는 거야.
+    $히히...@d{64} 약간의 희생- 아니@d{32}\n음, 증명을 도와줄 테스트 대상을 찾고 있어.`,
+  title: "암거래",
+  description: "불청객이 볼을 여러 개 들고 있군요.\n\"내가 보답한다니까! 이 강력한 몬스터볼을 대가로 줄 테니까, 너희 팀의 포켓몬을 한 마리 줘! 히히...\"",
+  query: "어떻게 하시겠습니까?",
   option: {
     1: {
-      label: "Accept",
-      tooltip: "(+) 5 Rogue Balls\n(?) Enhance a Random Pokémon",
-      selected_dialogue: `Let's see, that {{pokeName}} will do nicely!
-        $Remember, I'm not responsible\nif anything bad happens!@d{32} Hehe...`,
-      selected_message: `The man hands you 5 Rogue Balls.
-        \${{pokeName}} hops into the strange machine...
-        $Flashing lights and weird noises\nstart coming from the machine!
-        $...@d{96} Something emerges\nfrom the device, raging wildly!`
+      label: "승낙",
+      tooltip: "(+) 5 로그볼\n(?) 포켓몬 1마리 랜덤 강화",
+      selected_dialogue: `어디 보자, {{pokeName}}가(이) 좋겠군!
+        $명심해, 나쁜 일이 생겨도\n책임 못 지니까!@d{32} 히히...`,
+      selected_message: `남자는 로그볼 5개를 건넸다.
+        \${{pokeName}}는(은) 이상한 기계에 들어갔다...
+        $불빛이 깜빡이고 이상한 소음이\n기계에서 들려온다!
+        $...@d{96} 장치에서 무언가가\n맹렬한 기세로, 뛰쳐나왔다!`
     },
     2: {
-      label: "Refuse",
-      tooltip: "(-) No Rewards",
-      selected: "Not gonna help a poor fellow out?\nPah!",
+      label: "거절",
+      tooltip: "(-) 보상 없음",
+      selected: "불쌍한 사람을 도와주지 않는 거야?\n하!",
     }
   },
-  outro: "After the harrowing encounter,\nyou collect yourself and depart."
+  outro: "끔찍한 조우는 끝났고,\n당신은 마음을 다잡고 나아간다."
 };
