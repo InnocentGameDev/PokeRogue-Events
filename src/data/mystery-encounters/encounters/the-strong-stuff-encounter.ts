@@ -1,4 +1,4 @@
-import { EnemyPartyConfig, generateModifierTypeOption, initBattleWithEnemyConfig, initCustomMovesForEncounter, leaveEncounterWithoutBattle, setEncounterRewards, transitionMysteryEncounterIntroVisuals } from "#app/data/mystery-encounters/utils/encounter-phase-utils";
+import { EnemyPartyConfig, generateModifierTypeOption, initBattleWithEnemyConfig, loadCustomMovesForEncounter, leaveEncounterWithoutBattle, setEncounterRewards, transitionMysteryEncounterIntroVisuals } from "#app/data/mystery-encounters/utils/encounter-phase-utils";
 import { modifierTypes, PokemonHeldItemModifierType, } from "#app/modifier/modifier-type";
 import { MysteryEncounterType } from "#enums/mystery-encounter-type";
 import BattleScene from "#app/battle-scene";
@@ -16,6 +16,7 @@ import { BattleStat } from "#app/data/battle-stat";
 import { BattlerTagType } from "#enums/battler-tag-type";
 import { BerryType } from "#enums/berry-type";
 import { MysteryEncounterTier } from "#enums/mystery-encounter-tier";
+import { MysteryEncounterPokemonData } from "#app/data/mystery-encounters/mystery-encounter-pokemon-data";
 
 /** the i18n namespace for the encounter */
 const namespace = "mysteryEncounter:theStrongStuff";
@@ -55,7 +56,7 @@ export const TheStrongStuffEncounter: IMysteryEncounter =
     ]) // Set in onInit()
     .withIntroDialogue([
       {
-        text: `${namespace}:intro`,
+        text: `${namespace}.intro`,
       },
     ])
     .withOnInit((scene: BattleScene) => {
@@ -70,7 +71,7 @@ export const TheStrongStuffEncounter: IMysteryEncounter =
             species: getPokemonSpecies(Species.SHUCKLE),
             isBoss: true,
             bossSegments: 5,
-            spriteScale: 1.5,
+            mysteryEncounterData: new MysteryEncounterPokemonData(1.5),
             nature: Nature.BOLD,
             moveSet: [Moves.INFESTATION, Moves.SALT_CURE, Moves.GASTRO_ACID, Moves.HEAL_ORDER],
             modifierTypes: [
@@ -82,7 +83,7 @@ export const TheStrongStuffEncounter: IMysteryEncounter =
             ],
             tags: [BattlerTagType.MYSTERY_ENCOUNTER_POST_SUMMON],
             mysteryEncounterBattleEffects: (pokemon: Pokemon) => {
-              queueEncounterMessage(pokemon.scene, `${namespace}:option:2:stat_boost`);
+              queueEncounterMessage(pokemon.scene, `${namespace}.option.2.stat_boost`);
               pokemon.scene.unshiftPhase(new StatChangePhase(pokemon.scene, pokemon.getBattlerIndex(), true, [BattleStat.DEF, BattleStat.SPDEF], 2));
             }
           }
@@ -91,20 +92,20 @@ export const TheStrongStuffEncounter: IMysteryEncounter =
 
       encounter.enemyPartyConfigs = [config];
 
-      initCustomMovesForEncounter(scene, [Moves.GASTRO_ACID, Moves.STEALTH_ROCK]);
+      loadCustomMovesForEncounter(scene, [Moves.GASTRO_ACID, Moves.STEALTH_ROCK]);
 
       return true;
     })
-    .withTitle(`${namespace}:title`)
-    .withDescription(`${namespace}:description`)
-    .withQuery(`${namespace}:query`)
+    .withTitle(`${namespace}.title`)
+    .withDescription(`${namespace}.description`)
+    .withQuery(`${namespace}.query`)
     .withSimpleOption(
       {
-        buttonLabel: `${namespace}:option:1:label`,
-        buttonTooltip: `${namespace}:option:1:tooltip`,
+        buttonLabel: `${namespace}.option.1.label`,
+        buttonTooltip: `${namespace}.option.1.tooltip`,
         selected: [
           {
-            text: `${namespace}:option:1:selected`
+            text: `${namespace}.option.1.selected`
           }
         ]
       },
@@ -147,8 +148,8 @@ export const TheStrongStuffEncounter: IMysteryEncounter =
           modifyPlayerPokemonBST(pokemon, 10);
         }
 
-        encounter.setDialogueToken("highBstPokemon", highestBst.name);
-        await showEncounterText(scene, `${namespace}:option:1:selected_2`, null, true);
+        encounter.setDialogueToken("highBstPokemon", highestBst.getNameToRender());
+        await showEncounterText(scene, `${namespace}.option.1.selected_2`, null, true);
 
         setEncounterRewards(scene, { fillRemaining: true });
         leaveEncounterWithoutBattle(scene, true);
@@ -157,11 +158,11 @@ export const TheStrongStuffEncounter: IMysteryEncounter =
     )
     .withSimpleOption(
       {
-        buttonLabel: `${namespace}:option:2:label`,
-        buttonTooltip: `${namespace}:option:2:tooltip`,
+        buttonLabel: `${namespace}.option.2.label`,
+        buttonTooltip: `${namespace}.option.2.tooltip`,
         selected: [
           {
-            text: `${namespace}:option:2:selected`,
+            text: `${namespace}.option.2.selected`,
           },
         ],
       },

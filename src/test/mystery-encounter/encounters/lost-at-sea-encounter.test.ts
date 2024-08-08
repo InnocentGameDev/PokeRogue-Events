@@ -36,6 +36,7 @@ describe("Lost at Sea - Mystery Encounter", () => {
     game.override.mysteryEncounterChance(100);
     game.override.startingWave(defaultWave);
     game.override.startingBiome(defaultBiome);
+    game.override.disableTrainerWaves(true);
 
     vi.spyOn(MysteryEncounters, "mysteryEncountersByBiome", "get").mockReturnValue(
       new Map<Biome, MysteryEncounterType[]>([
@@ -57,14 +58,15 @@ describe("Lost at Sea - Mystery Encounter", () => {
     expect(LostAtSeaEncounter.encounterType).toBe(MysteryEncounterType.LOST_AT_SEA);
     expect(LostAtSeaEncounter.encounterTier).toBe(MysteryEncounterTier.COMMON);
     expect(LostAtSeaEncounter.dialogue).toBeDefined();
-    expect(LostAtSeaEncounter.dialogue.intro).toStrictEqual([{ text: `${namespace}:intro` }]);
-    expect(LostAtSeaEncounter.dialogue.encounterOptionsDialogue.title).toBe(`${namespace}:title`);
-    expect(LostAtSeaEncounter.dialogue.encounterOptionsDialogue.description).toBe(`${namespace}:description`);
-    expect(LostAtSeaEncounter.dialogue.encounterOptionsDialogue.query).toBe(`${namespace}:query`);
+    expect(LostAtSeaEncounter.dialogue.intro).toStrictEqual([{ text: `${namespace}.intro` }]);
+    expect(LostAtSeaEncounter.dialogue.encounterOptionsDialogue.title).toBe(`${namespace}.title`);
+    expect(LostAtSeaEncounter.dialogue.encounterOptionsDialogue.description).toBe(`${namespace}.description`);
+    expect(LostAtSeaEncounter.dialogue.encounterOptionsDialogue.query).toBe(`${namespace}.query`);
     expect(LostAtSeaEncounter.options.length).toBe(3);
   });
 
   it("should not spawn outside of sea biome", async () => {
+    game.override.mysteryEncounterTier(MysteryEncounterTier.COMMON);
     game.override.startingBiome(Biome.MOUNTAIN);
     await game.runToMysteryEncounter();
 
@@ -110,13 +112,13 @@ describe("Lost at Sea - Mystery Encounter", () => {
       expect(option1.optionMode).toBe(MysteryEncounterOptionMode.DISABLED_OR_DEFAULT);
       expect(option1.dialogue).toBeDefined();
       expect(option1.dialogue).toStrictEqual({
-        buttonLabel: `${namespace}:option:1:label`,
-        disabledButtonLabel: `${namespace}:option:1:label_disabled`,
-        buttonTooltip: `${namespace}:option:1:tooltip`,
-        disabledButtonTooltip: `${namespace}:option:1:tooltip_disabled`,
+        buttonLabel: `${namespace}.option.1.label`,
+        disabledButtonLabel: `${namespace}.option.1.label_disabled`,
+        buttonTooltip: `${namespace}.option.1.tooltip`,
+        disabledButtonTooltip: `${namespace}.option.1.tooltip_disabled`,
         selected: [
           {
-            text: `${namespace}:option:1:selected`,
+            text: `${namespace}.option.1.selected`,
           },
         ],
       });
@@ -172,13 +174,13 @@ describe("Lost at Sea - Mystery Encounter", () => {
       expect(option2.optionMode).toBe(MysteryEncounterOptionMode.DISABLED_OR_DEFAULT);
       expect(option2.dialogue).toBeDefined();
       expect(option2.dialogue).toStrictEqual({
-        buttonLabel: `${namespace}:option:2:label`,
-        disabledButtonLabel: `${namespace}:option:2:label_disabled`,
-        buttonTooltip: `${namespace}:option:2:tooltip`,
-        disabledButtonTooltip: `${namespace}:option:2:tooltip_disabled`,
+        buttonLabel: `${namespace}.option.2.label`,
+        disabledButtonLabel: `${namespace}.option.2.label_disabled`,
+        buttonTooltip: `${namespace}.option.2.tooltip`,
+        disabledButtonTooltip: `${namespace}.option.2.tooltip_disabled`,
         selected: [
           {
-            text: `${namespace}:option:2:selected`,
+            text: `${namespace}.option.2.selected`,
           },
         ],
       });
@@ -236,11 +238,11 @@ describe("Lost at Sea - Mystery Encounter", () => {
       expect(option3.optionMode).toBe(MysteryEncounterOptionMode.DEFAULT);
       expect(option3.dialogue).toBeDefined();
       expect(option3.dialogue).toStrictEqual({
-        buttonLabel: `${namespace}:option:3:label`,
-        buttonTooltip: `${namespace}:option:3:tooltip`,
+        buttonLabel: `${namespace}.option.3.label`,
+        buttonTooltip: `${namespace}.option.3.tooltip`,
         selected: [
           {
-            text: `${namespace}:option:3:selected`,
+            text: `${namespace}.option.3.selected`,
           },
         ],
       });

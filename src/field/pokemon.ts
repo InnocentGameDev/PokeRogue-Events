@@ -51,7 +51,7 @@ import { Biome } from "#enums/biome";
 import { Moves } from "#enums/moves";
 import { Species } from "#enums/species";
 import { getPokemonNameWithAffix } from "#app/messages.js";
-import { MysteryEncounterPokemonData } from "#app/data/mystery-encounters/utils/encounter-pokemon-utils";
+import { MysteryEncounterPokemonData } from "#app/data/mystery-encounters/mystery-encounter-pokemon-data";
 
 export enum FieldPosition {
   CENTER,
@@ -140,10 +140,10 @@ export default abstract class Pokemon extends Phaser.GameObjects.Container {
       // If abilityIndex is not provided, determine it based on species and hidden ability
       if (species.abilityHidden && hasHiddenAbility) {
         // If the species has a hidden ability and the hidden ability is present
-        this.abilityIndex = species.ability2 ? 2 : 1; // Use ability index 2 if species has a second ability, otherwise use 1
+        this.abilityIndex = 2;
       } else {
         // If there is no hidden ability or species does not have a hidden ability
-        this.abilityIndex = species.ability2 ? randAbilityIndex : 0; // Use random ability index if species has a second ability, otherwise use 0
+        this.abilityIndex = species.ability2 !== species.ability1 ? randAbilityIndex : 0; // Use random ability index if species has a second ability, otherwise use 0
       }
     }
     if (formIndex !== undefined) {
@@ -187,6 +187,7 @@ export default abstract class Pokemon extends Phaser.GameObjects.Container {
       this.fusionVariant = dataSource.fusionVariant || 0;
       this.fusionGender = dataSource.fusionGender;
       this.fusionLuck = dataSource.fusionLuck;
+      this.mysteryEncounterData = dataSource.mysteryEncounterData;
     } else {
       this.id = Utils.randSeedInt(4294967296);
       this.ivs = ivs || Utils.getIvsFromId(this.id);
@@ -233,6 +234,7 @@ export default abstract class Pokemon extends Phaser.GameObjects.Container {
       }
       this.luck = (this.shiny ? this.variant + 1 : 0) + (this.fusionShiny ? this.fusionVariant + 1 : 0);
       this.fusionLuck = this.luck;
+      this.mysteryEncounterData = new MysteryEncounterPokemonData();
     }
 
     this.generateName();
@@ -927,7 +929,10 @@ export default abstract class Pokemon extends Phaser.GameObjects.Container {
     }
 
     if (!types.length || !includeTeraType) {
-      if (!ignoreOverride && this.summonData?.types) {
+      if (this.mysteryEncounterData?.types?.length > 0) {
+        // "Permanent" override for a Pokemon's normal types, currently only used by Mystery Encounters
+        this.mysteryEncounterData.types.forEach(t => types.push(t));
+      } else if (!ignoreOverride && this.summonData?.types) {
         this.summonData.types.forEach(t => types.push(t));
       } else {
         const speciesForm = this.getSpeciesForm(ignoreOverride);
@@ -994,6 +999,9 @@ export default abstract class Pokemon extends Phaser.GameObjects.Container {
     if (Overrides.OPP_ABILITY_OVERRIDE && !this.isPlayer()) {
       return allAbilities[Overrides.OPP_ABILITY_OVERRIDE];
     }
+    if (this.mysteryEncounterData?.ability) {
+      return allAbilities[this.mysteryEncounterData.ability];
+    }
     if (this.isFusion()) {
       return allAbilities[this.getFusionSpeciesForm(ignoreOverride).getAbility(this.fusionAbilityIndex)];
     }
@@ -1017,6 +1025,9 @@ export default abstract class Pokemon extends Phaser.GameObjects.Container {
     }
     if (Overrides.OPP_PASSIVE_ABILITY_OVERRIDE && !this.isPlayer()) {
       return allAbilities[Overrides.OPP_PASSIVE_ABILITY_OVERRIDE];
+    }
+    if (this.mysteryEncounterData?.passive) {
+      return allAbilities[this.mysteryEncounterData.passive];
     }
 
     let starterSpeciesId = this.species.speciesId;
@@ -1728,7 +1739,7 @@ export default abstract class Pokemon extends Phaser.GameObjects.Container {
 
   hideInfo(): Promise<void> {
     return new Promise(resolve => {
-      if (this.battleInfo.visible) {
+      if (this.battleInfo && this.battleInfo.visible) {
         this.scene.tweens.add({
           targets: [ this.battleInfo, this.battleInfo.expMaskRect ],
           x: this.isPlayer() ? "+=150" : `-=${!this.isBoss() ? 150 : 246}`,
@@ -1862,7 +1873,9 @@ export default abstract class Pokemon extends Phaser.GameObjects.Container {
     const types = this.getTypes(true, true);
 
     const cancelled = new Utils.BooleanHolder(false);
+    const power = move.calculateBattlePower(source, this);
     const typeless = move.hasAttr(TypelessAttr);
+
     const typeMultiplier = new Utils.NumberHolder(!typeless && (moveCategory !== MoveCategory.STATUS || move.getAttrs(StatusMoveTypeImmunityAttr).find(attr => types.includes(attr.immuneType)))
       ? this.getAttackTypeEffectiveness(move, source, false, false)
       : 1);
@@ -1887,7 +1900,6 @@ export default abstract class Pokemon extends Phaser.GameObjects.Container {
     case MoveCategory.PHYSICAL:
     case MoveCategory.SPECIAL:
       const isPhysical = moveCategory === MoveCategory.PHYSICAL;
-      const power = move.calculateBattlePower(source, this);
       const sourceTeraType = source.getTeraType();
 
       if (!typeless) {
@@ -4058,6 +4070,7 @@ export class PokemonSummonData {
   public speciesForm: PokemonSpeciesForm;
   public fusionSpeciesForm: PokemonSpeciesForm;
   public ability: Abilities = Abilities.NONE;
+  public passiveAbility: Abilities = Abilities.NONE;
   public gender: Gender;
   public fusionGender: Gender;
   public stats: integer[];

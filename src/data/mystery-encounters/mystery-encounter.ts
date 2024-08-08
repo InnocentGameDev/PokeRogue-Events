@@ -47,6 +47,7 @@ export default interface IMysteryEncounter {
   encounterAnimations?: EncounterAnim[];
   hideBattleIntroMessage?: boolean;
   autoHideIntroVisuals?: boolean;
+  enterIntroVisualsFromRight?: boolean;
   catchAllowed?: boolean;
   maxAllowedEncounters?: number;
 
@@ -159,14 +160,16 @@ export default class IMysteryEncounter implements IMysteryEncounter {
     if (!isNullOrUndefined(encounter)) {
       Object.assign(this, encounter);
     }
-    this.encounterTier = !isNullOrUndefined(this.encounterTier) ? this.encounterTier : MysteryEncounterTier.COMMON;
+    this.encounterTier = this.encounterTier ?? MysteryEncounterTier.COMMON;
     this.dialogue = this.dialogue ?? {};
+    this.spriteConfigs = this.spriteConfigs ? [...this.spriteConfigs] : [];
     // Default max is 1 for ROGUE encounters, 3 for others
     this.maxAllowedEncounters = this.maxAllowedEncounters ?? this.encounterTier === MysteryEncounterTier.ROGUE ? 1 : 3;
     this.encounterMode = MysteryEncounterMode.DEFAULT;
     this.requirements = this.requirements ? this.requirements : [];
-    this.hideBattleIntroMessage = !isNullOrUndefined(this.hideBattleIntroMessage) ? this.hideBattleIntroMessage : false;
-    this.autoHideIntroVisuals = !isNullOrUndefined(this.autoHideIntroVisuals) ? this.autoHideIntroVisuals : true;
+    this.hideBattleIntroMessage = this.hideBattleIntroMessage ?? false;
+    this.autoHideIntroVisuals = this.autoHideIntroVisuals ?? true;
+    this.enterIntroVisualsFromRight = this.enterIntroVisualsFromRight ?? false;
 
     // Reset any dirty flags or encounter data
     this.startOfBattleEffectsComplete = false;
@@ -302,7 +305,7 @@ export default class IMysteryEncounter implements IMysteryEncounter {
       }
     }
     if (this.primaryPokemon?.length > 0) {
-      this.setDialogueToken("primaryName", this.primaryPokemon.name);
+      this.setDialogueToken("primaryName", this.primaryPokemon.getNameToRender());
       for (const req of this.primaryPokemonRequirements) {
         if (!req.invertQuery) {
           const value = req.getDialogueToken(scene, this.primaryPokemon);
@@ -313,7 +316,7 @@ export default class IMysteryEncounter implements IMysteryEncounter {
       }
     }
     if (this.secondaryPokemonRequirements?.length > 0 && this.secondaryPokemon?.length > 0) {
-      this.setDialogueToken("secondaryName", this.secondaryPokemon[0].name);
+      this.setDialogueToken("secondaryName", this.secondaryPokemon[0].getNameToRender());
       for (const req of this.secondaryPokemonRequirements) {
         if (!req.invertQuery) {
           const value = req.getDialogueToken(scene, this.secondaryPokemon[0]);
@@ -339,7 +342,7 @@ export default class IMysteryEncounter implements IMysteryEncounter {
         }
       }
       if (opt.primaryPokemonRequirements?.length > 0 && opt.primaryPokemon?.length > 0) {
-        this.setDialogueToken("option" + j + "PrimaryName", opt.primaryPokemon.name);
+        this.setDialogueToken("option" + j + "PrimaryName", opt.primaryPokemon.getNameToRender());
         for (const req of opt.primaryPokemonRequirements) {
           if (!req.invertQuery) {
             const value = req.getDialogueToken(scene, opt.primaryPokemon);
@@ -350,7 +353,7 @@ export default class IMysteryEncounter implements IMysteryEncounter {
         }
       }
       if (opt.secondaryPokemonRequirements?.length > 0 && opt.secondaryPokemon?.length > 0) {
-        this.setDialogueToken("option" + j + "SecondaryName", opt.secondaryPokemon[0].name);
+        this.setDialogueToken("option" + j + "SecondaryName", opt.secondaryPokemon[0].getNameToRender());
         for (const req of opt.secondaryPokemonRequirements) {
           if (!req.invertQuery) {
             const value = req.getDialogueToken(scene, opt.secondaryPokemon[0]);
@@ -414,6 +417,7 @@ export class MysteryEncounterBuilder implements Partial<IMysteryEncounter> {
 
   hideBattleIntroMessage?: boolean;
   hideIntroVisuals?: boolean;
+  enterIntroVisualsFromRight?: boolean;
   enemyPartyConfigs?: EnemyPartyConfig[] = [];
 
   /**
@@ -715,6 +719,15 @@ export class MysteryEncounterBuilder implements Partial<IMysteryEncounter> {
    */
   withAutoHideIntroVisuals(autoHideIntroVisuals: boolean): this & Required<Pick<IMysteryEncounter, "autoHideIntroVisuals">> {
     return Object.assign(this, { autoHideIntroVisuals: autoHideIntroVisuals });
+  }
+
+  /**
+   * @param enterIntroVisualsFromRight - If true, will slide in intro visuals from the right side of the screen. If false, slides in from left, as normal
+   * Default false
+   * @returns
+   */
+  withEnterIntroVisualsFromRight(enterIntroVisualsFromRight: boolean): this & Required<Pick<IMysteryEncounter, "enterIntroVisualsFromRight">> {
+    return Object.assign(this, { enterIntroVisualsFromRight: enterIntroVisualsFromRight });
   }
 
   /**

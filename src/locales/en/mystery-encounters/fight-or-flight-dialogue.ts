@@ -10,14 +10,14 @@ export const fightOrFlightDialogue = {
       selected: "You approach the\nPokémon without fear.",
     },
     2: {
-      label: "Steal the item",
+      label: "Steal the Item",
       tooltip: "@[SUMMARY_GREEN]{(35%) Steal Item}\n@[SUMMARY_BLUE]{(65%) Harder Battle}",
       tooltip_special: "(+) {{option2PrimaryName}} uses {{option2PrimaryMove}}",
       good_result: `.@d{32}.@d{32}.@d{32}
         $You manage to sneak your way\npast and grab the item!`,
       special_result: `.@d{32}.@d{32}.@d{32}
         $Your {{option2PrimaryName}} helps you out and uses {{option2PrimaryMove}}!
-        $ You nabbed the item!`,
+        $You nabbed the item!`,
       bad_result: `.@d{32}.@d{32}.@d{32}
         $The Pokémon catches you\nas you try to sneak around!`,
       boss_enraged: "The opposing {{enemyPokemon}} has become enraged!"

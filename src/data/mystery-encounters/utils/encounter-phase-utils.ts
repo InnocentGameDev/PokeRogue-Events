@@ -5,13 +5,14 @@ import { WEIGHT_INCREMENT_ON_SPAWN_MISS } from "#app/data/mystery-encounters/mys
 import { showEncounterText } from "#app/data/mystery-encounters/utils/encounter-dialogue-utils";
 import Pokemon, { FieldPosition, PlayerPokemon, PokemonMove } from "#app/field/pokemon";
 import { ExpBalanceModifier, ExpShareModifier, MultipleParticipantExpBonusModifier, PokemonExpBoosterModifier } from "#app/modifier/modifier";
-import { CustomModifierSettings, ModifierPoolType, ModifierType, ModifierTypeFunc, ModifierTypeGenerator, ModifierTypeOption, modifierTypes, PokemonHeldItemModifierType, regenerateModifierPoolThresholds } from "#app/modifier/modifier-type";
-import { BattleEndPhase, EggLapsePhase, ExpPhase, GameOverPhase, ModifierRewardPhase, MovePhase, SelectModifierPhase, ShowPartyExpBarPhase, TrainerVictoryPhase } from "#app/phases";
+import { CustomModifierSettings, ModifierPoolType, ModifierType, ModifierTypeGenerator, ModifierTypeOption, modifierTypes, PokemonHeldItemModifierType, regenerateModifierPoolThresholds } from "#app/modifier/modifier-type";
+import { BattleEndPhase, EggLapsePhase, ExpPhase, GameOverPhase, MovePhase, SelectModifierPhase, ShowPartyExpBarPhase, TrainerVictoryPhase } from "#app/phases";
 import { MysteryEncounterBattlePhase, MysteryEncounterBattleStartCleanupPhase, MysteryEncounterPhase, MysteryEncounterRewardsPhase } from "#app/phases/mystery-encounter-phases";
 import PokemonData from "#app/system/pokemon-data";
 import { OptionSelectConfig, OptionSelectItem } from "#app/ui/abstact-option-select-ui-handler";
 import { PartyOption, PartyUiMode } from "#app/ui/party-ui-handler";
 import { Mode } from "#app/ui/ui";
+import * as Utils from "#app/utils";
 import { isNullOrUndefined } from "#app/utils";
 import { BattlerTagType } from "#enums/battler-tag-type";
 import { Biome } from "#enums/biome";
@@ -19,7 +20,6 @@ import { TrainerType } from "#enums/trainer-type";
 import i18next from "i18next";
 import BattleScene from "#app/battle-scene";
 import Trainer, { TrainerVariant } from "#app/field/trainer";
-import * as Utils from "#app/utils";
 import { Gender } from "#app/data/gender";
 import { Nature } from "#app/data/nature";
 import { Moves } from "#enums/moves";
@@ -29,13 +29,16 @@ import { Status, StatusEffect } from "#app/data/status-effect";
 import { TrainerConfig, trainerConfigs, TrainerSlot } from "#app/data/trainer-config";
 import PokemonSpecies from "#app/data/pokemon-species";
 import Overrides from "#app/overrides";
+import { Egg, IEggOptions } from "#app/data/egg";
+import { Abilities } from "#enums/abilities";
+import { MysteryEncounterPokemonData } from "#app/data/mystery-encounters/mystery-encounter-pokemon-data";
 
 /**
  * Animates exclamation sprite over trainer's head at start of encounter
  * @param scene
  */
 export function doTrainerExclamation(scene: BattleScene) {
-  const exclamationSprite = scene.addFieldSprite(0, 0, "exclaim");
+  const exclamationSprite = scene.add.sprite(0, 0, "exclaim");
   exclamationSprite.setName("exclamation");
   scene.field.add(exclamationSprite);
   scene.field.moveTo(exclamationSprite, scene.field.getAll().length - 1);
@@ -62,7 +65,7 @@ export interface EnemyPokemonConfig {
   isBoss: boolean;
   bossSegments?: number;
   bossSegmentModifier?: number; // Additive to the determined segment number
-  spriteScale?: number;
+  mysteryEncounterData?: MysteryEncounterPokemonData;
   formIndex?: number;
   level?: number;
   gender?: Gender;
@@ -70,6 +73,8 @@ export interface EnemyPokemonConfig {
   moveSet?: Moves[];
   nature?: Nature;
   ivs?: [integer, integer, integer, integer, integer, integer];
+  ability?: Abilities;
+  shiny?: boolean;
   /** Can set just the status, or pass a timer on the status turns */
   status?: StatusEffect | [StatusEffect, number];
   mysteryEncounterBattleEffects?: (pokemon: Pokemon) => void;
@@ -151,7 +156,17 @@ export async function initBattleWithEnemyConfig(scene: BattleScene, partyConfig:
     let isBoss = false;
     if (!loaded) {
       if (trainerType || trainerConfig) {
-        battle.enemyParty[e] = battle.trainer.genPartyMember(e);
+        // Allows overriding a trainer's pokemon to use specific species/data
+        if (e < partyConfig?.pokemonConfigs?.length) {
+          const config = partyConfig?.pokemonConfigs?.[e];
+          level = config.level ? config.level : level;
+          dataSource = config.dataSource;
+          enemySpecies = config.species;
+          isBoss = config.isBoss;
+          battle.enemyParty[e] = scene.addEnemyPokemon(enemySpecies, level, TrainerSlot.TRAINER, isBoss, dataSource);
+        } else {
+          battle.enemyParty[e] = battle.trainer.genPartyMember(e);
+        }
       } else {
         if (e < partyConfig?.pokemonConfigs?.length) {
           const config = partyConfig?.pokemonConfigs?.[e];
@@ -199,11 +214,14 @@ export async function initBattleWithEnemyConfig(scene: BattleScene, partyConfig:
         enemyPokemon.formIndex = config.formIndex;
       }
 
-      // Set scale
-      if (!isNullOrUndefined(config.spriteScale)) {
-        enemyPokemon.mysteryEncounterData = {
-          spriteScale: config.spriteScale
-        };
+      // Set shiny
+      if (!isNullOrUndefined(config.shiny)) {
+        enemyPokemon.shiny = config.shiny;
+      }
+
+      // Set custom mystery encounter data fields (such as sprite scale, custom abilities, types, etc.)
+      if (!isNullOrUndefined(config.mysteryEncounterData)) {
+        enemyPokemon.mysteryEncounterData = config.mysteryEncounterData;
       }
 
       // Set Boss
@@ -240,6 +258,11 @@ export async function initBattleWithEnemyConfig(scene: BattleScene, partyConfig:
       }
 
       // Set summon data fields
+
+      // Set ability
+      if (!isNullOrUndefined(config.ability)) {
+        enemyPokemon.summonData.ability = config.ability;
+      }
 
       // Set gender
       if (!isNullOrUndefined(config.gender)) {
@@ -305,7 +328,7 @@ export async function initBattleWithEnemyConfig(scene: BattleScene, partyConfig:
  * @param scene
  * @param moves
  */
-export function initCustomMovesForEncounter(scene: BattleScene, moves: Moves | Moves[]) {
+export function loadCustomMovesForEncounter(scene: BattleScene, moves: Moves | Moves[]) {
   moves = Array.isArray(moves) ? moves : [moves];
   return Promise.all(moves.map(move => initMoveAnim(scene, move)))
     .then(() => loadMoveAnimAssets(scene, moves));
@@ -363,14 +386,16 @@ export function generateModifierTypeOption(scene: BattleScene, modifier: () => M
  */
 export function selectPokemonForOption(scene: BattleScene, onPokemonSelected: (pokemon: PlayerPokemon) => void | OptionSelectItem[], onPokemonNotSelected?: () => void, selectablePokemonFilter?: (pokemon: PlayerPokemon) => string): Promise<boolean> {
   return new Promise(resolve => {
+    const modeToSetOnExit = scene.ui.getMode();
+
     // Open party screen to choose pokemon to train
     scene.ui.setMode(Mode.PARTY, PartyUiMode.SELECT, -1, (slotIndex: integer, option: PartyOption) => {
       if (slotIndex < scene.getParty().length) {
-        scene.ui.setMode(Mode.MYSTERY_ENCOUNTER).then(() => {
+        scene.ui.setMode(modeToSetOnExit).then(() => {
           const pokemon = scene.getParty()[slotIndex];
           const secondaryOptions = onPokemonSelected(pokemon);
           if (!secondaryOptions) {
-            scene.currentBattle.mysteryEncounter.setDialogueToken("selectedPokemon", pokemon.name);
+            scene.currentBattle.mysteryEncounter.setDialogueToken("selectedPokemon", pokemon.getNameToRender());
             resolve(true);
             return;
           }
@@ -384,7 +409,7 @@ export function selectPokemonForOption(scene: BattleScene, onPokemonSelected: (p
                 const onSelect = option.handler;
                 option.handler = () => {
                   onSelect();
-                  scene.currentBattle.mysteryEncounter.setDialogueToken("selectedPokemon", pokemon.name);
+                  scene.currentBattle.mysteryEncounter.setDialogueToken("selectedPokemon", pokemon.getNameToRender());
                   resolve(true);
                   return true;
                 };
@@ -420,7 +445,7 @@ export function selectPokemonForOption(scene: BattleScene, onPokemonSelected: (p
           });
         });
       } else {
-        scene.ui.setMode(Mode.MYSTERY_ENCOUNTER).then(() => {
+        scene.ui.setMode(modeToSetOnExit).then(() => {
           if (onPokemonNotSelected) {
             onPokemonNotSelected();
           }
@@ -436,10 +461,10 @@ export function selectPokemonForOption(scene: BattleScene, onPokemonSelected: (p
  * Can have shop displayed or skipped
  * @param scene - Battle Scene
  * @param customShopRewards - adds a shop phase with the specified rewards / reward tiers
- * @param nonShopPlayerItemRewards - will add a non-shop reward phase for each specified item/modifier (can happen in addition to a shop)
+ * @param eggRewards
  * @param preRewardsCallback - can execute an arbitrary callback before the new phases if necessary (useful for updating items/party/injecting new phases before MysteryEncounterRewardsPhase)
  */
-export function setEncounterRewards(scene: BattleScene, customShopRewards?: CustomModifierSettings, nonShopPlayerItemRewards?: ModifierTypeFunc[], preRewardsCallback?: Function) {
+export function setEncounterRewards(scene: BattleScene, customShopRewards?: CustomModifierSettings, eggRewards?: IEggOptions[], preRewardsCallback?: Function) {
   scene.currentBattle.mysteryEncounter.doEncounterRewards = (scene: BattleScene) => {
     if (preRewardsCallback) {
       preRewardsCallback();
@@ -451,14 +476,11 @@ export function setEncounterRewards(scene: BattleScene, customShopRewards?: Cust
       scene.tryRemovePhase(p => p instanceof SelectModifierPhase);
     }
 
-    if (nonShopPlayerItemRewards?.length > 0) {
-      nonShopPlayerItemRewards.forEach((reward) => {
-        scene.unshiftPhase(new ModifierRewardPhase(scene, reward));
+    if (eggRewards) {
+      eggRewards.forEach(eggOptions => {
+        const egg = new Egg(eggOptions);
+        egg.addEggToGameData(scene);
       });
-    } else {
-      while (!isNullOrUndefined(scene.findPhase(p => p instanceof ModifierRewardPhase))) {
-        scene.tryRemovePhase(p => p instanceof ModifierRewardPhase);
-      }
     }
 
     return true;

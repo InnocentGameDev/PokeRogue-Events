@@ -33,9 +33,9 @@ describe("Absolute Avarice - Mystery Encounter", () => {
     game = new GameManager(phaserGame);
     scene = game.scene;
     game.override.mysteryEncounterChance(100);
-    game.override.mysteryEncounterTier(MysteryEncounterTier.COMMON);
     game.override.startingWave(defaultWave);
     game.override.startingBiome(defaultBiome);
+    game.override.disableTrainerWaves(true);
 
     vi.spyOn(MysteryEncounters, "mysteryEncountersByBiome", "get").mockReturnValue(
       new Map<Biome, MysteryEncounterType[]>([
@@ -57,10 +57,10 @@ describe("Absolute Avarice - Mystery Encounter", () => {
     expect(AbsoluteAvariceEncounter.encounterType).toBe(MysteryEncounterType.ABSOLUTE_AVARICE);
     expect(AbsoluteAvariceEncounter.encounterTier).toBe(MysteryEncounterTier.GREAT);
     expect(AbsoluteAvariceEncounter.dialogue).toBeDefined();
-    expect(AbsoluteAvariceEncounter.dialogue.intro).toStrictEqual([{ text: `${namespace}:intro` }]);
-    expect(AbsoluteAvariceEncounter.dialogue.encounterOptionsDialogue.title).toBe(`${namespace}:title`);
-    expect(AbsoluteAvariceEncounter.dialogue.encounterOptionsDialogue.description).toBe(`${namespace}:description`);
-    expect(AbsoluteAvariceEncounter.dialogue.encounterOptionsDialogue.query).toBe(`${namespace}:query`);
+    expect(AbsoluteAvariceEncounter.dialogue.intro).toStrictEqual([{ text: `${namespace}.intro` }]);
+    expect(AbsoluteAvariceEncounter.dialogue.encounterOptionsDialogue.title).toBe(`${namespace}.title`);
+    expect(AbsoluteAvariceEncounter.dialogue.encounterOptionsDialogue.description).toBe(`${namespace}.description`);
+    expect(AbsoluteAvariceEncounter.dialogue.encounterOptionsDialogue.query).toBe(`${namespace}.query`);
     expect(AbsoluteAvariceEncounter.options.length).toBe(3);
   });
 
@@ -81,6 +81,7 @@ describe("Absolute Avarice - Mystery Encounter", () => {
   });
 
   it("should not spawn outside of proper biomes", async () => {
+    game.override.mysteryEncounterTier(MysteryEncounterTier.GREAT);
     game.override.startingBiome(Biome.VOLCANO);
     await game.runToMysteryEncounter();
 
@@ -96,6 +97,7 @@ describe("Absolute Avarice - Mystery Encounter", () => {
   });
 
   it("should spawn if player has enough berries", async () => {
+    game.override.mysteryEncounterTier(MysteryEncounterTier.GREAT);
     game.override.starterHeldItems([{name: "BERRY", count: 2, type: BerryType.SITRUS}, {name: "BERRY", count: 3, type: BerryType.GANLON}]);
 
     await game.runToMysteryEncounter();
@@ -106,7 +108,7 @@ describe("Absolute Avarice - Mystery Encounter", () => {
   it("should remove all player's berries at the start of the encounter", async () => {
     game.override.starterHeldItems([{name: "BERRY", count: 2, type: BerryType.SITRUS}, {name: "BERRY", count: 3, type: BerryType.GANLON}]);
 
-    await game.runToMysteryEncounter();
+    await game.runToMysteryEncounter(MysteryEncounterType.ABSOLUTE_AVARICE, defaultParty);
 
     expect(scene.currentBattle?.mysteryEncounter?.encounterType).toBe(MysteryEncounterType.ABSOLUTE_AVARICE);
     expect(scene.modifiers?.length).toBe(0);
@@ -118,11 +120,11 @@ describe("Absolute Avarice - Mystery Encounter", () => {
       expect(option1.optionMode).toBe(MysteryEncounterOptionMode.DEFAULT);
       expect(option1.dialogue).toBeDefined();
       expect(option1.dialogue).toStrictEqual({
-        buttonLabel: `${namespace}:option:1:label`,
-        buttonTooltip: `${namespace}:option:1:tooltip`,
+        buttonLabel: `${namespace}.option.1.label`,
+        buttonTooltip: `${namespace}.option.1.tooltip`,
         selected: [
           {
-            text: `${namespace}:option:1:selected`,
+            text: `${namespace}.option.1.selected`,
           },
         ],
       });
@@ -171,11 +173,11 @@ describe("Absolute Avarice - Mystery Encounter", () => {
       expect(option.optionMode).toBe(MysteryEncounterOptionMode.DEFAULT);
       expect(option.dialogue).toBeDefined();
       expect(option.dialogue).toStrictEqual({
-        buttonLabel: `${namespace}:option:2:label`,
-        buttonTooltip: `${namespace}:option:2:tooltip`,
+        buttonLabel: `${namespace}.option.2.label`,
+        buttonTooltip: `${namespace}.option.2.tooltip`,
         selected: [
           {
-            text: `${namespace}:option:2:selected`,
+            text: `${namespace}.option.2.selected`,
           },
         ],
       });
@@ -229,11 +231,11 @@ describe("Absolute Avarice - Mystery Encounter", () => {
       expect(option.optionMode).toBe(MysteryEncounterOptionMode.DEFAULT);
       expect(option.dialogue).toBeDefined();
       expect(option.dialogue).toStrictEqual({
-        buttonLabel: `${namespace}:option:3:label`,
-        buttonTooltip: `${namespace}:option:3:tooltip`,
+        buttonLabel: `${namespace}.option.3.label`,
+        buttonTooltip: `${namespace}.option.3.tooltip`,
         selected: [
           {
-            text: `${namespace}:option:3:selected`,
+            text: `${namespace}.option.3.selected`,
           },
         ],
       });

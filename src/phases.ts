@@ -915,7 +915,7 @@ export class EncounterPhase extends BattlePhase {
       // Load Mystery Encounter Exclamation bubble and sfx
       loadEnemyAssets.push(new Promise<void>(resolve => {
         this.scene.loadSe("GEN8- Exclaim", "battle_anims", "GEN8- Exclaim.wav");
-        this.scene.loadAtlas("exclaim", "mystery-encounters");
+        this.scene.loadImage("exclaim", "mystery-encounters");
         this.scene.load.once(Phaser.Loader.Events.COMPLETE, () => resolve());
         if (!this.scene.load.isLoading()) {
           this.scene.load.start();
@@ -1002,8 +1002,8 @@ export class EncounterPhase extends BattlePhase {
 
     const enemyField = this.scene.getEnemyField();
     this.scene.tweens.add({
-      targets: [this.scene.arenaEnemy, this.scene.currentBattle.trainer, enemyField, this.scene.currentBattle?.mysteryEncounter?.introVisuals, this.scene.arenaPlayer, this.scene.trainer].flat(),
-      x: (_target, _key, value, fieldIndex: integer) => fieldIndex < 3 + (enemyField.length) ? value + 300 : value - 300,
+      targets: [this.scene.arenaEnemy, this.scene.currentBattle.trainer, enemyField, this.scene.arenaPlayer, this.scene.trainer].flat(),
+      x: (_target, _key, value, fieldIndex: integer) => fieldIndex < 2 + (enemyField.length) ? value + 300 : value - 300,
       duration: 2000,
       onComplete: () => {
         if (!this.tryOverrideForBattleSpec()) {
@@ -1011,6 +1011,19 @@ export class EncounterPhase extends BattlePhase {
         }
       }
     });
+
+    const encounterIntroVisuals = this.scene.currentBattle?.mysteryEncounter?.introVisuals;
+    if (encounterIntroVisuals) {
+      const enterFromRight = encounterIntroVisuals.enterFromRight;
+      if (enterFromRight) {
+        encounterIntroVisuals.x += 500;
+      }
+      this.scene.tweens.add({
+        targets: encounterIntroVisuals,
+        x: enterFromRight ? "-=200" : "+=300",
+        duration: 2000
+      });
+    }
   }
 
   getEncounterMessage(): string {
@@ -1106,8 +1119,6 @@ export class EncounterPhase extends BattlePhase {
       }
 
       const doEncounter = () => {
-        this.scene.playBgm(undefined);
-
         const doShowEncounterOptions = () => {
           this.scene.ui.clearText();
           this.scene.ui.getMessageHandler().hideNameText();
@@ -1264,7 +1275,17 @@ export class NextEncounterPhase extends EncounterPhase {
     }
     const nextEncounterVisuals = this.scene.currentBattle?.mysteryEncounter?.introVisuals;
     if (nextEncounterVisuals) {
-      moveTargets.push(nextEncounterVisuals);
+      const enterFromRight = nextEncounterVisuals.enterFromRight;
+      if (enterFromRight) {
+        nextEncounterVisuals.x += 500;
+        this.scene.tweens.add({
+          targets: nextEncounterVisuals,
+          x: "-=200",
+          duration: 2000
+        });
+      } else {
+        moveTargets.push(nextEncounterVisuals);
+      }
     }
     this.scene.tweens.add({
       targets: moveTargets.flat(),
@@ -1348,7 +1369,7 @@ export class PostSummonPhase extends PokemonPhase {
     }
     this.scene.arena.applyTags(ArenaTrapTag, pokemon);
 
-    // If this is fight or flight mystery encounter and is enemy pokemon summon phase, add enraged tag
+    // If this is mystery encounter and has post summon phase tag, apply post summon effects
     if (pokemon.findTags(t => t instanceof MysteryEncounterPostSummonTag)) {
       pokemon.lapseTag(BattlerTagType.MYSTERY_ENCOUNTER_POST_SUMMON);
     }

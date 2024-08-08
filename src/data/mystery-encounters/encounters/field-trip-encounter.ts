@@ -42,27 +42,27 @@ export const FieldTripEncounter: IMysteryEncounter =
     ])
     .withIntroDialogue([
       {
-        text: `${namespace}:intro`,
+        text: `${namespace}.intro`,
       },
       {
-        text: `${namespace}:intro_dialogue`,
-        speaker: `${namespace}:speaker`,
+        text: `${namespace}.intro_dialogue`,
+        speaker: `${namespace}.speaker`,
       },
     ])
     .withAutoHideIntroVisuals(false)
-    .withTitle(`${namespace}:title`)
-    .withDescription(`${namespace}:description`)
-    .withQuery(`${namespace}:query`)
+    .withTitle(`${namespace}.title`)
+    .withDescription(`${namespace}.description`)
+    .withQuery(`${namespace}.query`)
     .withOption(
       new MysteryEncounterOptionBuilder()
         .withOptionMode(MysteryEncounterOptionMode.DEFAULT)
         .withDialogue({
-          buttonLabel: `${namespace}:option:1:label`,
-          buttonTooltip: `${namespace}:option:1:tooltip`,
-          secondOptionPrompt: `${namespace}:second_option_prompt`,
+          buttonLabel: `${namespace}.option.1.label`,
+          buttonTooltip: `${namespace}.option.1.tooltip`,
+          secondOptionPrompt: `${namespace}.second_option_prompt`,
           selected: [
             {
-              text: `${namespace}:option:selected`,
+              text: `${namespace}.option.selected`,
             },
           ],
         })
@@ -80,32 +80,32 @@ export const FieldTripEncounter: IMysteryEncounter =
                   if (!correctMove) {
                     encounter.options[0].dialogue.selected = [
                       {
-                        text: `${namespace}:option:incorrect`,
-                        speaker: `${namespace}:speaker`,
+                        text: `${namespace}.option.incorrect`,
+                        speaker: `${namespace}.speaker`,
                       },
                       {
-                        text: `${namespace}:option:lesson_learned`,
+                        text: `${namespace}.option.lesson_learned`,
                       },
                     ];
                     encounter.dialogue.outro = [
                       {
-                        text: `${namespace}:outro_bad`,
-                        speaker: `${namespace}:speaker`,
+                        text: `${namespace}.outro_bad`,
+                        speaker: `${namespace}.speaker`,
                       },
                     ];
                     setEncounterExp(scene, scene.getParty().map((p) => p.id), 50);
                   } else {
-                    encounter.setDialogueToken("pokeName", pokemon.name);
+                    encounter.setDialogueToken("pokeName", pokemon.getNameToRender());
                     encounter.setDialogueToken("move", move.getName());
                     encounter.options[0].dialogue.selected = [
                       {
-                        text: `${namespace}:option:selected`,
+                        text: `${namespace}.option.selected`,
                       },
                     ];
                     encounter.dialogue.outro = [
                       {
-                        text: `${namespace}:outro_good`,
-                        speaker: `${namespace}:speaker`,
+                        text: `${namespace}.outro_good`,
+                        speaker: `${namespace}.speaker`,
                       },
                     ];
                     setEncounterExp(scene, [pokemon.id], 100);
@@ -143,12 +143,12 @@ export const FieldTripEncounter: IMysteryEncounter =
       new MysteryEncounterOptionBuilder()
         .withOptionMode(MysteryEncounterOptionMode.DEFAULT)
         .withDialogue({
-          buttonLabel: `${namespace}:option:2:label`,
-          buttonTooltip: `${namespace}:option:2:tooltip`,
-          secondOptionPrompt: `${namespace}:second_option_prompt`,
+          buttonLabel: `${namespace}.option.2.label`,
+          buttonTooltip: `${namespace}.option.2.tooltip`,
+          secondOptionPrompt: `${namespace}.second_option_prompt`,
           selected: [
             {
-              text: `${namespace}:option:selected`,
+              text: `${namespace}.option.selected`,
             },
           ],
         })
@@ -166,38 +166,38 @@ export const FieldTripEncounter: IMysteryEncounter =
                   if (!correctMove) {
                     encounter.options[1].dialogue.selected = [
                       {
-                        text: `${namespace}:option:incorrect`,
-                        speaker: `${namespace}:speaker`,
+                        text: `${namespace}.option.incorrect`,
+                        speaker: `${namespace}.speaker`,
                       },
                       {
-                        text: `${namespace}:option:lesson_learned`,
-                      },
-                    ];
-                    encounter.dialogue.outro = [
-                      {
-                        text: `${namespace}:outro_bad`,
-                        speaker: `${namespace}:speaker`,
+                        text: `${namespace}.option.lesson_learned`,
                       },
                     ];
                     encounter.dialogue.outro = [
                       {
-                        text: `${namespace}:outro_bad`,
-                        speaker: `${namespace}:speaker`,
+                        text: `${namespace}.outro_bad`,
+                        speaker: `${namespace}.speaker`,
+                      },
+                    ];
+                    encounter.dialogue.outro = [
+                      {
+                        text: `${namespace}.outro_bad`,
+                        speaker: `${namespace}.speaker`,
                       },
                     ];
                     setEncounterExp(scene, scene.getParty().map((p) => p.id), 50);
                   } else {
-                    encounter.setDialogueToken("pokeName", pokemon.name);
+                    encounter.setDialogueToken("pokeName", pokemon.getNameToRender());
                     encounter.setDialogueToken("move", move.getName());
                     encounter.options[1].dialogue.selected = [
                       {
-                        text: `${namespace}:option:selected`,
+                        text: `${namespace}.option.selected`,
                       },
                     ];
                     encounter.dialogue.outro = [
                       {
-                        text: `${namespace}:outro_good`,
-                        speaker: `${namespace}:speaker`,
+                        text: `${namespace}.outro_good`,
+                        speaker: `${namespace}.speaker`,
                       },
                     ];
                     setEncounterExp(scene, [pokemon.id], 100);
@@ -235,12 +235,12 @@ export const FieldTripEncounter: IMysteryEncounter =
       new MysteryEncounterOptionBuilder()
         .withOptionMode(MysteryEncounterOptionMode.DEFAULT)
         .withDialogue({
-          buttonLabel: `${namespace}:option:3:label`,
-          buttonTooltip: `${namespace}:option:3:tooltip`,
-          secondOptionPrompt: `${namespace}:second_option_prompt`,
+          buttonLabel: `${namespace}.option.3.label`,
+          buttonTooltip: `${namespace}.option.3.tooltip`,
+          secondOptionPrompt: `${namespace}.second_option_prompt`,
           selected: [
             {
-              text: `${namespace}:option:selected`,
+              text: `${namespace}.option.selected`,
             },
           ],
         })
@@ -258,32 +258,32 @@ export const FieldTripEncounter: IMysteryEncounter =
                   if (!correctMove) {
                     encounter.options[2].dialogue.selected = [
                       {
-                        text: `${namespace}:option:incorrect`,
-                        speaker: `${namespace}:speaker`,
+                        text: `${namespace}.option.incorrect`,
+                        speaker: `${namespace}.speaker`,
                       },
                       {
-                        text: `${namespace}:option:lesson_learned`,
+                        text: `${namespace}.option.lesson_learned`,
                       },
                     ];
                     encounter.dialogue.outro = [
                       {
-                        text: `${namespace}:outro_bad`,
-                        speaker: `${namespace}:speaker`,
+                        text: `${namespace}.outro_bad`,
+                        speaker: `${namespace}.speaker`,
                       },
                     ];
                     setEncounterExp(scene, scene.getParty().map((p) => p.id), 50);
                   } else {
-                    encounter.setDialogueToken("pokeName", pokemon.name);
+                    encounter.setDialogueToken("pokeName", pokemon.getNameToRender());
                     encounter.setDialogueToken("move", move.getName());
                     encounter.options[2].dialogue.selected = [
                       {
-                        text: `${namespace}:option:selected`,
+                        text: `${namespace}.option.selected`,
                       },
                     ];
                     encounter.dialogue.outro = [
                       {
-                        text: `${namespace}:outro_good`,
-                        speaker: `${namespace}:speaker`,
+                        text: `${namespace}.outro_good`,
+                        speaker: `${namespace}.speaker`,
                       },
                     ];
                     setEncounterExp(scene, [pokemon.id], 100);
